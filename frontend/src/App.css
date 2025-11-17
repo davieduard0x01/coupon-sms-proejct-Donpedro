@@ -1,42 +1,160 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+/* Arquivo: coupon-sms-project/frontend/src/App.css (VERSÃO FINAL CLEAN/MOBILE) */
+
+/* --- Configuração Global de Responsividade --- */
+*, *::before, *::after {
+  box-sizing: border-box; /* Garante que padding e bordas não causem overflow */
+}
+
+/* --- Estilos Gerais: Foco no Clean Design --- */
+body {
+  margin: 0;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background-color: #F8F8F8; /* Fundo branco/cinza claro (Clean) */
+  color: #333333; /* Texto escuro e legível */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; 
+  min-height: 100vh;
+  padding: 20px 10px; /* Padding ajustado para mobile */
+  box-sizing: border-box;
+  overflow-x: hidden; /* Correção final para rolagem horizontal */
+}
+
+.container {
+  background-color: white; /* Fundo do formulário branco */
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
+  padding: 30px 20px; 
+  max-width: 400px; /* Largura máxima */
+  width: 100%;
   text-align: center;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* --- Tipografia e Branding --- */
+h1 {
+  font-size: 1.8em;
+  margin-bottom: 5px;
+  color: #222222;
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.brand-name {
+    font-size: 1.2em;
+    font-weight: 900;
+    color: #CC0000; /* Destaque DONPEDRO em Vermelho */
+    text-transform: uppercase;
+    margin-bottom: 25px;
+    display: block;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.logo-icon {
+    margin-bottom: 10px;
+    font-size: 3em; 
+    color: #FFD700; /* Ícone amarelo */
 }
 
-.card {
-  padding: 2em;
+p {
+  font-size: 1em;
+  color: #666666;
+  margin-bottom: 25px;
 }
 
-.read-the-docs {
-  color: #888;
+/* --- Formulário --- */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; 
+  margin-bottom: 30px;
+}
+
+input[type="text"],
+input[type="tel"] {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #DDDDDD; 
+  border-radius: 6px;
+  background-color: #FFFFFF;
+  color: #333333;
+  font-size: 1em;
+  box-sizing: border-box;
+  transition: border-color 0.3s;
+}
+
+input[type="text"]:focus,
+input[type="tel"]:focus {
+  border-color: #CC0000;
+  box-shadow: 0 0 0 1px #CC0000; 
+}
+
+/* Botão de Ação (CTA) */
+button {
+  width: 100%;
+  padding: 14px 20px;
+  background-color: #CC0000; /* Botão principal Vermelho */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  text-transform: uppercase;
+}
+
+button:hover:not(:disabled) {
+  background-color: #990000;
+}
+
+button:disabled {
+  background-color: #AAAAAA;
+  cursor: not-allowed;
+}
+
+/* --- Mensagens e Notas --- */
+.result-message {
+  padding: 12px;
+  border-radius: 6px;
+  margin-top: 20px;
+  font-weight: 600;
+  font-size: 1em;
+}
+
+.result-message.success {
+  background-color: #e6ffed;
+  color: #007000;
+  border: 1px solid #c2f5cc;
+}
+
+.result-message.error {
+  background-color: #ffe6e6;
+  color: #CC0000;
+  border: 1px solid #ffc2c2;
+}
+
+.coupon-display {
+    background-color: #f7f7f7;
+    border: 1px solid #dddddd; 
+    padding: 15px;
+    border-radius: 6px;
+    margin-top: 20px;
+}
+
+.coupon-display h2 {
+    color: #CC0000;
+    font-size: 1em;
+    margin-bottom: 5px;
+}
+
+.coupon-display .code {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #333; 
+    letter-spacing: 1px;
+}
+
+.note {
+  margin-top: 20px;
+  font-size: 0.85em;
+  color: #999999;
 }
