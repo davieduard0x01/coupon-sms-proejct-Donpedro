@@ -1,39 +1,47 @@
-/* Arquivo: coupon-sms-project/frontend/src/App.css (VERSÃO FINAL CLEAN/MOBILE) */
+/* Arquivo: coupon-sms-project/frontend/src/App.css */
 
 /* --- Configuração Global de Responsividade --- */
 *, *::before, *::after {
-  box-sizing: border-box; /* Garante que padding e bordas não causem overflow */
+  box-sizing: border-box; 
 }
 
 /* --- Estilos Gerais: Foco no Clean Design --- */
 body {
   margin: 0;
   font-family: 'Helvetica Neue', Arial, sans-serif;
-  background-color: #F8F8F8; /* Fundo branco/cinza claro (Clean) */
-  color: #333333; /* Texto escuro e legível */
+  background-color: #F8F8F8; 
+  color: #333333; 
   display: flex;
   justify-content: center;
-  align-items: flex-start; 
-  min-height: 100vh;
-  padding: 20px 10px; /* Padding ajustado para mobile */
+  align-items: center; /* Centraliza verticalmente (melhor que flex-start) */
+  padding: 20px 10px; 
   box-sizing: border-box;
-  overflow-x: hidden; /* Correção final para rolagem horizontal */
+  overflow-x: hidden; /* Evita a rolagem horizontal em mobile */
 }
 
 .container {
-  background-color: white; /* Fundo do formulário branco */
+  background-color: white; 
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
-  padding: 30px 20px; 
-  max-width: 400px; /* Largura máxima */
+  padding: 20px; /* Reduzido para otimizar espaço vertical */
+  max-width: 400px; 
   width: 100%;
   text-align: center;
 }
 
 /* --- Tipografia e Branding --- */
+.brand-logo {
+    width: 100px; 
+    height: auto; 
+    margin-bottom: 10px;
+    display: block; 
+    margin-left: auto;
+    margin-right: auto;
+}
+
 h1 {
   font-size: 1.8em;
-  margin-bottom: 5px;
+  margin-bottom: 0px; /* Reduzido */
   color: #222222;
   font-weight: 700;
   letter-spacing: -0.5px;
@@ -42,16 +50,16 @@ h1 {
 .brand-name {
     font-size: 1.2em;
     font-weight: 900;
-    color: #CC0000; /* Destaque DONPEDRO em Vermelho */
+    color: #CC0000;
     text-transform: uppercase;
-    margin-bottom: 25px;
+    margin-bottom: 15px; /* Reduzido */
     display: block;
 }
 
 .logo-icon {
     margin-bottom: 10px;
     font-size: 3em; 
-    color: #FFD700; /* Ícone amarelo */
+    color: #FFD700;
 }
 
 p {
@@ -91,7 +99,7 @@ input[type="tel"]:focus {
 button {
   width: 100%;
   padding: 14px 20px;
-  background-color: #CC0000; /* Botão principal Vermelho */
+  background-color: #CC0000; 
   color: white;
   border: none;
   border-radius: 6px;

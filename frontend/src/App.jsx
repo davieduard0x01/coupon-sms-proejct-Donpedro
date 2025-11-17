@@ -25,6 +25,7 @@ function App() {
         headers: {
           'Content-Type': 'application/json',
         },
+        // Envia todos os campos, que agora são obrigatórios
         body: JSON.stringify({ name, phone, address }), 
       });
 
@@ -52,12 +53,15 @@ function App() {
 
   return (
     <div className="container">
-      {/* Elementos de Branding */}
-      <div className="logo-icon">💰</div> 
+      {/* Logo SVG */}
+      <img src="/logo.svg" alt="DONPEDRO Logo" className="brand-logo" />
+      
+      {/* Títulos */}
       <h1 className="main-title">Cadastro Exclusivo</h1>
       <span className="brand-name">DONPEDRO</span>
 
-      <p>Preencha os dados e receba seu cupom de desconto (D0nP3dro20) via SMS.</p>
+      {/* Texto revisado: sem prévia do desconto */}
+      <p>Preencha os dados e receba seu cupom de desconto via SMS.</p>
 
       <form onSubmit={handleSubmit}>
         <input
@@ -80,7 +84,8 @@ function App() {
           type="text"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
-          placeholder="Seu Endereço (Opcional)"
+          placeholder="Seu Endereço (Obrigatório)"
+          required
           disabled={loading}
         />
         <button type="submit" disabled={loading}>
