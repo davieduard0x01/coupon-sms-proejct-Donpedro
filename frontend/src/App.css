@@ -1,168 +1,98 @@
-/* Arquivo: coupon-sms-project/frontend/src/App.css */
+/* Arquivo: coupon-sms-project/frontend/src/App.css (ADICIONAIS PARA QR CODE E LISTA) */
 
-/* --- Configuração Global de Responsividade --- */
-*, *::before, *::after {
-  box-sizing: border-box; 
+/* Estilos da Tela do QR Code */
+.qr-display-container {
+    padding: 40px 20px;
 }
 
-/* --- Estilos Gerais: Foco no Clean Design --- */
-body {
-  margin: 0;
-  font-family: 'Helvetica Neue', Arial, sans-serif;
-  background-color: #F8F8F8; 
-  color: #333333; 
-  display: flex;
-  justify-content: center;
-  align-items: center; /* Centraliza verticalmente (melhor que flex-start) */
-  padding: 20px 10px; 
-  box-sizing: border-box;
-  overflow-x: hidden; /* Evita a rolagem horizontal em mobile */
+.qrcode-box {
+    margin: 30px auto;
+    width: 256px;
+    height: 256px;
+    padding: 10px;
+    border: 3px solid #CC0000;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
-.container {
-  background-color: white; 
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
-  padding: 20px; /* Reduzido para otimizar espaço vertical */
-  max-width: 400px; 
-  width: 100%;
-  text-align: center;
-}
-
-/* --- Tipografia e Branding --- */
-.brand-logo {
-    width: 100px; 
-    height: auto; 
-    margin-bottom: 10px;
-    display: block; 
-    margin-left: auto;
-    margin-right: auto;
-}
-
-h1 {
-  font-size: 1.8em;
-  margin-bottom: 0px; /* Reduzido */
-  color: #222222;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-}
-
-.brand-name {
-    font-size: 1.2em;
-    font-weight: 900;
-    color: #CC0000;
-    text-transform: uppercase;
-    margin-bottom: 15px; /* Reduzido */
-    display: block;
-}
-
-.logo-icon {
-    margin-bottom: 10px;
-    font-size: 3em; 
-    color: #FFD700;
-}
-
-p {
-  font-size: 1em;
-  color: #666666;
-  margin-bottom: 25px;
-}
-
-/* --- Formulário --- */
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px; 
-  margin-bottom: 30px;
-}
-
-input[type="text"],
-input[type="tel"] {
-  width: 100%;
-  padding: 12px 15px;
-  border: 1px solid #DDDDDD; 
-  border-radius: 6px;
-  background-color: #FFFFFF;
-  color: #333333;
-  font-size: 1em;
-  box-sizing: border-box;
-  transition: border-color 0.3s;
-}
-
-input[type="text"]:focus,
-input[type="tel"]:focus {
-  border-color: #CC0000;
-  box-shadow: 0 0 0 1px #CC0000; 
-}
-
-/* Botão de Ação (CTA) */
-button {
-  width: 100%;
-  padding: 14px 20px;
-  background-color: #CC0000; 
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 1.1em;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  text-transform: uppercase;
-}
-
-button:hover:not(:disabled) {
-  background-color: #990000;
-}
-
-button:disabled {
-  background-color: #AAAAAA;
-  cursor: not-allowed;
-}
-
-/* --- Mensagens e Notas --- */
-.result-message {
-  padding: 12px;
-  border-radius: 6px;
-  margin-top: 20px;
-  font-weight: 600;
-  font-size: 1em;
-}
-
-.result-message.success {
-  background-color: #e6ffed;
-  color: #007000;
-  border: 1px solid #c2f5cc;
-}
-
-.result-message.error {
-  background-color: #ffe6e6;
-  color: #CC0000;
-  border: 1px solid #ffc2c2;
-}
-
-.coupon-display {
-    background-color: #f7f7f7;
-    border: 1px solid #dddddd; 
-    padding: 15px;
-    border-radius: 6px;
-    margin-top: 20px;
-}
-
-.coupon-display h2 {
-    color: #CC0000;
-    font-size: 1em;
+.instruction {
+    font-weight: bold;
+    color: #333;
     margin-bottom: 5px;
 }
 
-.coupon-display .code {
-    font-size: 1.3em;
-    font-weight: bold;
-    color: #333; 
-    letter-spacing: 1px;
+.instruction-small {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 25px;
 }
 
-.note {
-  margin-top: 20px;
-  font-size: 0.85em;
-  color: #999999;
+.reset-button {
+    background-color: #6c757d !important;
+    font-size: 1em;
+}
+
+.reset-button:hover {
+    background-color: #5a6268 !important;
+}
+
+/* Estilos da Lista de Cupons (Tratamento de Duplicidade) */
+.coupon-list-wrapper {
+    margin: 20px 0;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    text-align: left;
+    background-color: #f9f9f9;
+}
+
+.list-intro {
+    font-size: 0.9em;
+    color: #CC0000;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.coupon-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.coupon-card {
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 0.9em;
+    border-left: 5px solid;
+}
+
+.status-nao-utilizado {
+    border-color: #007bff;
+    background-color: #e6f7ff;
+}
+
+.status-utilizado {
+    border-color: #28a745;
+    background-color: #d4edda;
+}
+
+.status-expirado {
+    border-color: #6c757d;
+    background-color: #f7f7f7;
+}
+
+.status-label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+
+.coupon-code-display {
+    word-break: break-all;
+}
+
+.print-info {
+    color: #007bff;
+    font-style: italic;
+    margin-top: 5px;
 }

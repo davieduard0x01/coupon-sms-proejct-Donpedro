@@ -1,21 +1,23 @@
-// Arquivo: coupon-sms-project/frontend/src/main.jsx
+// Arquivo: frontend/src/main.jsx (Roteamento Atualizado)
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
-import AdminPanel from './Admin.jsx';
+import AdminPanel from './Admin.jsx'; // Painel Admin (Não incluído aqui, mas necessário)
+import FuncionarioApp from './FuncionarioApp.jsx'; // Novo App Scanner
 import './index.css';
 
-// Lógica simples para carregar a página correta com base na URL
 const rootElement = document.getElementById('root');
 const currentPath = window.location.pathname;
 
-let ComponentToRender = App;
+let ComponentToRender;
 
 if (currentPath.startsWith('/admin')) {
     ComponentToRender = AdminPanel;
+} else if (currentPath.startsWith('/scanner')) {
+    ComponentToRender = FuncionarioApp; // Carrega o App Scanner
 } else {
-    ComponentToRender = App;
+    ComponentToRender = App; // Carrega o Formulário Público
 }
 
 ReactDOM.createRoot(rootElement).render(
