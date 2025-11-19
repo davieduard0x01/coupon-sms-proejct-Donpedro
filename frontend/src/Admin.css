@@ -48,4 +48,121 @@
 
 .result-message {
     font-size: 1.1em;
+}/* Arquivo: frontend/src/Admin.css (ADICIONAIS DO DASHBOARD ADMIN) */
+
+.dashboard-panel {
+    max-width: 90%;
+    margin: 20px auto;
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #CC0000;
+}
+
+.admin-header h1 {
+    font-size: 1.8em;
+    color: #333;
+}
+
+.admin-actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.export-button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.export-button:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+.export-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.logout-button {
+    background-color: #dc3545;
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.logout-button:hover {
+    background-color: #c82333;
+}
+
+/* Tabela de Dados */
+.data-table-wrapper {
+    overflow-x: auto;
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.total-count {
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #CC0000;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 700px; 
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    font-size: 0.9em;
+}
+
+th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    color: #333;
+    text-transform: uppercase;
+}
+
+/* Estilos de Status na Tabela */
+.data-table-wrapper tr.status-nao-utilizado {
+    background-color: #e6f7ff; 
+}
+.data-table-wrapper tr.status-utilizado {
+    background-color: #d4edda; 
+    color: #155724;
+}
+.data-table-wrapper tr.status-expirado {
+    background-color: #f7f7f7;
+    color: #6c757d;
+}
+
+.no-data {
+    text-align: center;
+    padding: 30px;
+    font-size: 1.2em;
+    color: #6c757d;
+    background-color: #f8f8f8;
+    border-radius: 8px;
 }
