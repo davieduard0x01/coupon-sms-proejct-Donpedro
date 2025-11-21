@@ -1,24 +1,35 @@
-// Arquivo: coupon-sms-project/frontend/src/App.jsx (INTERFACE DO USUÁRIO - CADASTRO/QR CODE)
+// Arquivo: frontend/src/App.jsx (INTERFACE DO USUÁRIO - CADASTRO/QR CODE)
 
 import React, { useState } from 'react';
-import QRCode from 'qrcode.react'; // Biblioteca para gerar QR Code
+// CORREÇÃO: Usamos { QRCodeSVG } para importação correta da biblioteca
+import { QRCodeSVG } from 'qrcode.react'; 
 import './App.css'; 
 
 // URL base do backend
 const API_URL = 'http://localhost:3001/api/register-coupon';
 
 // Componente para exibir a lista de cupons existentes
-const UserCuponsList = ({ cupons }) => (
+// Recebe os cupons e a função para voltar para a tela do QR Code
+const UserCuponsList = ({ cupons, onViewQR }) => ( 
     <div className="coupon-list-wrapper">
         <h2>Meus Cupons Cadastrados</h2>
         <p className="list-intro">Você já possui cadastro. Abaixo estão seus cupons:</p>
         <div className="coupon-grid">
             {cupons.map((coupon) => (
-                <div key={coupon.coupon_uuid} className={`coupon-card status-${coupon.status_uso.toLowerCase().replace('_', '-')}`}>
+                <div 
+                    key={coupon.coupon_uuid} 
+                    className={`coupon-card status-${coupon.status_uso.toLowerCase().replace('_', '-')}`}
+                    // Lógica para permitir o clique APENAS se o cupom não foi usado
+                    onClick={() => coupon.status_uso === 'NAO_UTILIZADO' && onViewQR(coupon.coupon_uuid)} 
+                    style={{ cursor: coupon.status_uso === 'NAO_UTILIZADO' ? 'pointer' : 'default' }}
+                >
                     <p className="status-label">{coupon.status_uso.replace('_', ' ')}</p>
                     <p className="coupon-code-display">{coupon.coupon_code} ({coupon.coupon_uuid.substring(0, 8)}...)</p>
-                    {coupon.status_uso === 'NAO_UTILIZADO' && (
-                        <p className="print-info">Este cupom ainda é válido. Use o QR Code anterior.</p>
+                    {coupon.status_uso === 'NAO_UTILIZADO' ? (
+                        // Opção de re-visualizar o QR Code
+                        <p className="print-info">Clique para ver o QR Code válido novamente.</p>
+                    ) : (
+                        <p className="print-info">Este cupom foi {coupon.status_uso.toLowerCase()}.</p>
                     )}
                 </div>
             ))}
@@ -35,17 +46,29 @@ function App() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   
-  // Novos estados para o fluxo QR Code
+  // Estados para o fluxo QR Code e Duplicidade
   const [couponUUID, setCouponUUID] = useState(null);
+  const [couponCode, setCouponCode] = useState(null); // Armazena o código fixo
   const [existingUserCupons, setExistingUserCupons] = useState(null);
+
+  // Função para acionar a visualização do QR Code de um cupom já existente
+  const handleViewQR = (uuid) => {
+    // Busca o cupom válido na lista para obter o código fixo (D0nP3dro20)
+    const validCoupon = existingUserCupons.find(c => c.coupon_uuid === uuid);
+
+    setCouponUUID(uuid);
+    setCouponCode(validCoupon ? validCoupon.coupon_code : 'D0nP3dro20');
+    setMessage("Seu cupom válido foi recuperado.");
+    setExistingUserCupons(null); // Esconde a lista de cupons
+  };
 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage('');
-    setCouponUUID(null); // Limpa o QR Code anterior
-    setExistingUserCupons(null); // Limpa a lista de cupons antigos
+    setCouponUUID(null); 
+    setExistingUserCupons(null); 
 
     try {
       const response = await fetch(API_URL, {
@@ -61,16 +84,21 @@ function App() {
       if (response.ok) {
         // CÓDIGO 200 (NOVO CADASTRO): Exibe o QR Code
         setMessage(`Parabéns, ${name}! Seu cupom foi gerado.`);
-        setCouponUUID(data.couponUUID); // Armazena o UUID para gerar o QR Code
+        setCouponUUID(data.couponUUID); 
+        setCouponCode(data.couponCode); // Armazena o código fixo
         
       } else if (response.status === 409) {
         // CÓDIGO 409 (JÁ CADASTRADO): Trata o erro e mostra a lista de cupons
         setMessage(`Falha: ${data.message}`);
-        setExistingUserCupons(data.cupons); // Recebe e exibe a lista de cupons do usuário
+        setExistingUserCupons(data.cupons); // Recebe a lista de cupons
         
       } else {
         // Outros Erros (400, 500)
         setMessage(`Falha: ${data.message}`);
+        // Se houver código de suporte, ele será exibido
+        if (data.couponCode) { 
+            setCouponCode(data.couponCode); 
+        }
       }
     } catch (error) {
       console.error('Erro na requisição:', error);
@@ -81,9 +109,8 @@ function App() {
   };
 
 
-  // --- Renderização do QR Code ou Formulário ---
+  // --- RENDERIZAÇÃO DA TELA DE QR CODE ---
   if (couponUUID) {
-      const couponURL = `${window.location.origin}/coupon/${couponUUID}`;
       return (
         <div className="container qr-display-container">
             <h1 className="main-title">✅ Cupom Gerado!</h1>
@@ -91,26 +118,25 @@ function App() {
             <p className="success-message">{message}</p>
 
             <div className="qrcode-box">
-                {/* Geração do QR Code usando o UUID como valor */}
-                <QRCode
-                    value={couponUUID} // Valor que será lido pelo scanner (o UUID único)
+                <QRCodeSVG
+                    value={couponUUID} // O valor lido pelo scanner
                     size={256}
                     level="H"
                     includeMargin={true}
                 />
             </div>
             
-            <p className="instruction">Este QR Code é o seu cupom único **D0nP3dro20**.</p>
+            <p className="instruction">Este QR Code é o seu cupom único **{couponCode}**.</p>
             <p className="instruction-small">Tire um print da tela ou salve a imagem. Válido para 1 uso.</p>
             
             <button className="reset-button" onClick={() => setCouponUUID(null)}>
-                Voltar ao Cadastro
+                VOLTAR AO CADASTRO
             </button>
         </div>
       );
   }
 
-  // --- Renderização do Formulário Padrão ---
+  // --- RENDERIZAÇÃO DO FORMULÁRIO PADRÃO ---
   return (
     <div className="container">
       <img src="/logo.svg" alt="DONPEDRO Logo" className="brand-logo" />
@@ -120,8 +146,8 @@ function App() {
 
       <p>Preencha os dados e receba seu cupom de desconto via QR Code.</p>
 
-      {/* Exibe a lista de cupons se o usuário tentar cadastrar novamente */}
-      {existingUserCupons && <UserCuponsList cupons={existingUserCupons} />}
+      {/* Exibe a lista de cupons se o usuário tentar cadastrar novamente (409) */}
+      {existingUserCupons && <UserCuponsList cupons={existingUserCupons} onViewQR={handleViewQR} />}
 
       <form onSubmit={handleSubmit}>
         <input
@@ -153,7 +179,11 @@ function App() {
         </button>
       </form>
 
+      {/* Mensagem de sucesso ou falha (exceto quando a lista de cupons está visível) */}
       {message && !existingUserCupons && <p className={`result-message ${couponUUID ? 'success' : 'error'}`}>{message}</p>}
+      
+      {/* Exibe o código de suporte em caso de erro 500 (falha de DB) */}
+      {couponCode && !couponUUID && <p className="coupon-display">Código de Suporte: {couponCode}</p>}
       
       <p className="note">
         *O código será gerado no formato UUID e validado via scanner.

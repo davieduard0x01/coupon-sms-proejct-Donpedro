@@ -1,25 +1,102 @@
-// Arquivo: frontend/src/FuncionarioApp.jsx (App Scanner)
+// Arquivo: frontend/src/FuncionarioApp.jsx (VERSÃO FINAL COM SCANNER E LOGIN)
 
-import React, { useState } from 'react';
-import './Admin.css'; // Reutilizaremos o CSS do Admin para login/estrutura
+import React, { useState, useEffect } from 'react';
+import { Html5Qrcode } from 'html5-qrcode'; // Biblioteca do scanner
+import './Admin.css'; 
 
 const API_BASE_URL = 'http://localhost:3001';
 
+// --- Componente do Scanner (Gerencia a Câmera) ---
+const QrCodeScanner = ({ onScanSuccess, onScanError }) => {
+    
+    // O useEffect gerencia a criação, inicialização e limpeza do scanner
+    useEffect(() => {
+        const qrCodeRegionId = "reader";
+        let html5QrCode; 
+
+        const startScanner = () => {
+            // Cria a instância SOMENTE QUANDO O DIV ESTÁ NA TELA
+            if (document.getElementById(qrCodeRegionId)) {
+                 html5QrCode = new Html5Qrcode(qrCodeRegionId, { verbose: false });
+            } else {
+                 onScanError("Elemento 'reader' não encontrado no DOM.");
+                 return;
+            }
+
+            const config = {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                disableFlip: false,
+            };
+
+            html5QrCode.start(
+                { facingMode: "environment" },
+                config,
+                (decodedText, decodedResult) => {
+                    // SUCESSO: Para a câmera e chama o handler de validação
+                    if (html5QrCode.isScanning) {
+                        html5QrCode.stop().then(() => {
+                            onScanSuccess(decodedText);
+                        }).catch(err => {
+                            console.error("Falha ao parar o scanner:", err);
+                        });
+                    }
+                },
+                (errorMessage) => {
+                    // Erro de leitura
+                }
+            ).catch((err) => {
+                onScanError(`Erro ao iniciar a câmera: ${err.message}`);
+                console.error("Erro fatal ao iniciar o scanner:", err);
+            });
+        };
+
+        startScanner();
+
+        // Limpeza: Garante que o scanner para ao desmontar ou mudar de modo
+        return () => {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().catch(err => console.log("Stop failed on unmount", err));
+            }
+        };
+    }, []); // Roda apenas uma vez ao montar
+    
+    // Adicionado um placeholder de erro simples
+    return (
+        <div className="camera-placeholder">
+            <div id="reader" style={{ width: "100%", height: "250px", border: "1px solid #ccc", overflow: "hidden" }} />
+            <p style={{color: 'red', marginTop: '10px'}}>Conceda permissão à câmera e verifique o console se a câmera não aparecer.</p>
+        </div>
+    );
+};
+
+
 const FuncionarioApp = () => {
-    // --- Estados de Autenticação ---
     const [token, setToken] = useState(localStorage.getItem('funcToken') || '');
     const [nivelAcesso, setNivelAcesso] = useState(localStorage.getItem('funcNivel') || '');
     const [usuario, setUsuario] = useState('');
     const [senha, setSenha] = useState('');
     const [loginError, setLoginError] = useState('');
 
-    // --- Estados da Validação ---
     const [scanCode, setScanCode] = useState('');
     const [validationResult, setValidationResult] = useState(null);
     const [validationLoading, setValidationLoading] = useState(false);
+    
+    // Estado que alterna entre 'manual' (padrão) e 'camera'
+    const [validationMode, setValidationMode] = useState('manual'); 
 
 
-    // --- 1. Lógica de Login ---
+    // --- Efeito de Limpeza ao Mudar Modo ---
+    useEffect(() => {
+        // Garante que o scanner para se o modo manual for selecionado
+        if (validationMode === 'manual' && Html5Qrcode.isScanning) {
+            // Usamos a mesma lógica de parada aqui, verificando se há uma instância rodando
+            new Html5Qrcode("reader", { verbose: false }).stop().catch(err => console.log("Stop failed on mode change", err));
+        }
+    }, [validationMode]);
+
+
+    // --- Lógica de Login ---
     const handleLogin = async (e) => {
         e.preventDefault();
         setLoginError('');
@@ -46,13 +123,14 @@ const FuncionarioApp = () => {
         }
     };
 
-    // --- 2. Lógica de Validação do Cupom (Scanner) ---
-    const handleValidation = async (e) => {
-        e.preventDefault();
+
+    // --- Lógica de Validação do Cupom (Chama a API) ---
+    const handleValidation = async (codeToValidate) => {
         setValidationLoading(true);
         setValidationResult(null);
+        setScanCode(codeToValidate); 
 
-        if (!scanCode) {
+        if (!codeToValidate) {
             setValidationResult({ success: false, message: 'Insira o código UUID do QR Code.' });
             setValidationLoading(false);
             return;
@@ -63,18 +141,16 @@ const FuncionarioApp = () => {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'X-Auth-Token': token // Envia o token para autenticar o funcionário
+                    'X-Auth-Token': token 
                 },
-                body: JSON.stringify({ couponUUID: scanCode }),
+                body: JSON.stringify({ couponUUID: codeToValidate }), 
             });
 
             const data = await response.json();
             
             if (response.ok) {
-                // Sucesso (200 OK) - Cupom VÁLIDO e USADO
                 setValidationResult({ success: true, message: data.message, nome: data.nome });
             } else {
-                // Falha (404, 409, 500) - Cupom já usado ou inválido
                 setValidationResult({ success: false, message: data.message });
             }
 
@@ -82,7 +158,8 @@ const FuncionarioApp = () => {
             setValidationResult({ success: false, message: 'Erro de comunicação com o servidor.' });
         } finally {
             setValidationLoading(false);
-            setScanCode(''); // Limpa o campo após a tentativa de leitura
+            setScanCode(''); // Limpa o código
+            setValidationMode('manual'); // Volta para o modo manual após a validação
         }
     };
 
@@ -91,11 +168,18 @@ const FuncionarioApp = () => {
         localStorage.removeItem('funcNivel');
         setToken('');
         setNivelAcesso('');
+        // Tenta parar o scanner ao sair
+        if (validationMode === 'camera') {
+            new Html5Qrcode("reader", { verbose: false }).stop().catch(err => console.log("Stop failed on logout", err));
+        }
+    };
+    
+    const handleErrorScan = (message) => {
+        setValidationResult({ success: false, message: message });
     };
 
-    // --- 3. Renderização ---
 
-    // Tela de Login
+    // --- Renderização de Login ---
     if (!token) {
         return (
             <div className="admin-container login-form">
@@ -123,7 +207,7 @@ const FuncionarioApp = () => {
         );
     }
 
-    // Tela de Scanner (Validação)
+    // --- Renderização da Tela de Scanner (Validação) ---
     return (
         <div className="admin-container scanner-panel">
             <header className="admin-header">
@@ -132,22 +216,46 @@ const FuncionarioApp = () => {
                 <button onClick={handleLogout} className="logout-button">Sair</button>
             </header>
             
-            <form onSubmit={handleValidation} className="validation-form">
-                <p className="scanner-instruction">
-                    Insira o UUID lido pelo QR Code:
-                </p>
-                <input
-                    type="text"
-                    placeholder="Cole ou Digite o Código UUID do Cupom"
-                    value={scanCode}
-                    onChange={(e) => setScanCode(e.target.value)}
-                    required
-                    disabled={validationLoading}
-                />
-                <button type="submit" disabled={validationLoading}>
-                    {validationLoading ? 'Validando...' : 'VALIDAR CUPOM'}
+            {/* BOTÕES DE ALTERNÂNCIA DE MODO */}
+            <div className="scanner-mode-toggle">
+                <button 
+                    onClick={() => setValidationMode('camera')}
+                    className={`mode-button ${validationMode === 'camera' ? 'active-mode' : ''}`}
+                >
+                    Scannear por Câmera
                 </button>
-            </form>
+                <button 
+                    onClick={() => setValidationMode('manual')}
+                    className={`mode-button ${validationMode === 'manual' ? 'active-mode' : ''}`}
+                >
+                    Inserir UUID Manualmente
+                </button>
+            </div>
+
+            {/* RENDERIZAÇÃO CONDICIONAL */}
+            {validationMode === 'camera' && (
+                <div className="camera-area">
+                    {/* O onScanError é adicionado para debug */}
+                    <QrCodeScanner onScanSuccess={handleValidation} onScanError={handleErrorScan} />
+                    <p className="scanner-instruction">Aponte a câmera para o QR Code do cliente.</p>
+                </div>
+            )}
+
+            {validationMode === 'manual' && (
+                <form onSubmit={(e) => { e.preventDefault(); handleValidation(scanCode); }} className="validation-form">
+                    <input
+                        type="text"
+                        placeholder="Cole ou Digite o Código UUID do Cupom"
+                        value={scanCode}
+                        onChange={(e) => setScanCode(e.target.value)}
+                        required
+                        disabled={validationLoading}
+                    />
+                    <button type="submit" disabled={validationLoading}>
+                        {validationLoading ? 'Validando...' : 'VALIDAR CUPOM'}
+                    </button>
+                </form>
+            )}
 
             {/* Resultado da Validação */}
             {validationResult && (

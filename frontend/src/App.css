@@ -1,6 +1,124 @@
-/* Arquivo: coupon-sms-project/frontend/src/App.css (ADICIONAIS PARA QR CODE E LISTA) */
+/* Arquivo: coupon-sms-project/frontend/src/App.css (CÓDIGO COMPLETO E FINAL) */
 
-/* Estilos da Tela do QR Code */
+/* --- Configuração Global de Responsividade --- */
+*, *::before, *::after {
+  box-sizing: border-box; 
+}
+
+/* --- ESTILOS GLOBAIS E CONTAINER (CLEAN DESIGN) --- */
+body {
+  margin: 0;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background-color: #F8F8F8; /* Fundo Clean */
+  color: #333333; 
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Conteúdo no topo */
+  min-height: 100vh; 
+  padding: 0px 10px; /* Padding ajustado */
+  box-sizing: border-box;
+  overflow-x: hidden; 
+}
+
+.container {
+  background-color: white; 
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
+  padding: 30px 20px; 
+  max-width: 400px; 
+  width: 100%;
+  text-align: center;
+  margin-top: 20px; /* Margem do topo da tela */
+  margin-bottom: 20px;
+}
+
+/* --- TIPOGRAFIA E BRANDING --- */
+.brand-logo {
+    max-width: 350px; 
+    width: 100%; 
+    height: auto; 
+    margin-bottom: 20px; /* Mais espaço abaixo do logo */
+    display: block; 
+    margin-left: auto;
+    margin-right: auto;
+}
+
+h1 {
+  font-size: 1.8em;
+  margin-top: 20px; 
+  margin-bottom: 5px; 
+  color: #222222;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.brand-name {
+    font-size: 1.2em;
+    font-weight: 900;
+    color: #CC0000; /* Destaque DONPEDRO em Vermelho */
+    text-transform: uppercase;
+    margin-bottom: 25px; 
+    display: block;
+}
+
+p {
+  font-size: 1em;
+  color: #666666;
+  margin-bottom: 30px; /* Espaço antes do formulário */
+}
+
+/* --- ESTILOS DO FORMULÁRIO (INPUTS E BOTÕES) --- */
+form {
+  display: flex;
+  flex-direction: column; /* Coloca os campos em coluna */
+  gap: 12px; /* Espaçamento reduzido entre os campos */
+  margin-bottom: 30px;
+}
+
+input[type="text"],
+input[type="tel"] {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #DDDDDD; 
+  border-radius: 6px;
+  background-color: #FFFFFF;
+  color: #333333;
+  font-size: 1em;
+  box-sizing: border-box; 
+  transition: border-color 0.3s;
+}
+
+input[type="text"]:focus,
+input[type="tel"]:focus {
+  border-color: #CC0000;
+  box-shadow: 0 0 0 1px #CC0000; 
+}
+
+button {
+  width: 100%;
+  padding: 14px 20px;
+  background-color: #CC0000; /* Botão principal Vermelho */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  text-transform: uppercase;
+}
+
+button:hover:not(:disabled) {
+  background-color: #990000;
+}
+
+button:disabled {
+  background-color: #AAAAAA;
+  cursor: not-allowed;
+}
+
+/* --- ESTILOS ADICIONAIS (QR CODE E LISTA DE CUPONS) --- */
+
 .qr-display-container {
     padding: 40px 20px;
 }
@@ -95,4 +213,30 @@
     color: #007bff;
     font-style: italic;
     margin-top: 5px;
+}
+/* --- Mensagens de Status --- */
+.result-message {
+  padding: 12px;
+  border-radius: 6px;
+  margin-top: 20px;
+  font-weight: 600;
+  font-size: 1em;
+}
+
+.result-message.success {
+  background-color: #e6ffed;
+  color: #007000;
+  border: 1px solid #c2f5cc;
+}
+
+.result-message.error {
+  background-color: #ffe6e6;
+  color: #CC0000;
+  border: 1px solid #ffc2c2;
+}
+
+.note {
+  margin-top: 20px;
+  font-size: 0.85em;
+  color: #999999;
 }
