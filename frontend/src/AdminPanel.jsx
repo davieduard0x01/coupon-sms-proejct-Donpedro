@@ -1,4 +1,4 @@
-// Arquivo: frontend/src/AdminPanel.jsx (Painel de Administração)
+// Arquivo: frontend/src/AdminPanel.jsx (CÓDIGO FINAL E COMPLETO)
 
 import React, { useState, useEffect } from 'react';
 import './Admin.css'; 
@@ -9,18 +9,16 @@ const API_BASE_URL = 'http://localhost:3001';
 const convertToCSV = (data) => {
     if (!data || data.length === 0) return '';
     
-    // Extrai os cabeçalhos (chaves do primeiro objeto)
-    const headers = Object.keys(data[0]);
+    const headers = ["coupon_uuid", "nome", "telefone", "endereco", "status_uso", "data_cadastro", "data_uso"];
     
-    // Mapeia os dados:
-    // 1. A primeira linha é o cabeçalho (separado por vírgula)
-    // 2. As linhas seguintes são os valores (separados por vírgula)
     const csvContent = [
-        headers.join(';'), // Cabeçalhos (usando ';' como separador para evitar problemas com vírgulas nos dados)
+        headers.join(";"), 
         ...data.map(row => 
             headers.map(header => {
                 let value = row[header] === null || row[header] === undefined ? '' : row[header];
-                // Remove quebras de linha e aspas duplas, e envolve em aspas se contiverem o separador
+                if (header.startsWith('data_') && value) {
+                    value = new Date(value).toLocaleDateString('pt-BR');
+                }
                 value = String(value).replace(/"/g, '""'); 
                 if (value.includes(';') || value.includes('\n')) {
                     value = `"${value}"`;
@@ -30,7 +28,7 @@ const convertToCSV = (data) => {
         )
     ].join('\n');
 
-    return csvContent;
+    return "\uFEFF" + csvContent; 
 };
 
 const AdminPanel = () => {
@@ -38,7 +36,7 @@ const AdminPanel = () => {
     const [token, setToken] = useState(localStorage.getItem('adminToken') || '');
     const [nivelAcesso, setNivelAcesso] = useState(localStorage.getItem('adminNivel') || '');
     const [usuario, setUsuario] = useState('');
-    const [senha, setSenha] = useState('');
+    const [password, setPassword] = useState(''); 
     const [loginError, setLoginError] = useState('');
 
     // --- Estados do Dashboard ---
@@ -60,11 +58,12 @@ const AdminPanel = () => {
         setDataError('');
 
         try {
-            const response = await fetch(`${API_BASE_URL}/admin/data`, {
+            // Rota correta para buscar leads
+            const response = await fetch(`${API_BASE_URL}/admin/leads`, { 
                 method: 'GET',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'X-Auth-Token': token // Envia o token para autenticar o Admin
+                    'X-Auth-Token': token 
                 },
             });
 
@@ -72,10 +71,9 @@ const AdminPanel = () => {
             
             if (response.ok) {
                 setCupons(data);
-            } else if (response.status === 401) {
-                // Token inválido ou expirado, força logout
+            } else if (response.status === 401 || response.status === 403) {
                 handleLogout();
-                setLoginError('Sessão expirada. Faça login novamente.');
+                setLoginError('Acesso expirado ou negado. Faça login novamente.');
             } else {
                 setDataError(data.message || 'Erro ao carregar os dados.');
             }
@@ -97,7 +95,7 @@ const AdminPanel = () => {
             const response = await fetch(`${API_BASE_URL}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ usuario, senha }),
+                body: JSON.stringify({ usuario, senha: password }),
             });
 
             const data = await response.json();
@@ -111,7 +109,6 @@ const AdminPanel = () => {
                 localStorage.setItem('adminNivel', data.nivel);
                 setToken(data.token);
                 setNivelAcesso(data.nivel);
-                // O useEffect cuidará de chamar fetchData
             } else {
                 setLoginError(data.message || 'Erro de login desconhecido.');
             }
@@ -132,9 +129,12 @@ const AdminPanel = () => {
 
     // --- 5. Lógica de Exportação CSV ---
     const handleExportCSV = () => {
+        if (cupons.length === 0) return;
+
         const csv = convertToCSV(cupons);
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
+        
         if (link.download !== undefined) { 
             const url = URL.createObjectURL(blob);
             link.setAttribute("href", url);
@@ -165,8 +165,8 @@ const AdminPanel = () => {
                     <input
                         type="password"
                         placeholder="Senha Admin"
-                        value={senha}
-                        onChange={(e) => setSenha(e.target.value)}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                         required
                     />
                     <button type="submit">Acessar Dashboard</button>
@@ -180,15 +180,20 @@ const AdminPanel = () => {
     return (
         <div className="admin-container dashboard-panel">
             <header className="admin-header">
-                <h1>Dashboard de Leads e Cupons</h1>
-                <p>Usuário logado: {usuario} ({nivelAcesso})</p>
+                {/* BLOCO DE INFORMAÇÃO DO USUÁRIO E TÍTULO */}
+                <div className="admin-info">
+                    <h1>Dashboard Admin </h1>
+                    <p>Usuário logado: **{usuario}** ({nivelAcesso})</p>
+                </div>
+                {/* BLOCO DE AÇÕES (EXPORTAR/SAIR) */}
                 <div className="admin-actions">
                     <button onClick={handleExportCSV} disabled={loadingData || cupons.length === 0} className="export-button">
-                        {cupons.length > 0 ? `Exportar ${cupons.length} Registros para CSV` : 'Nenhum dado para exportar'}
+                        {cupons.length > 0 ? `EXPORTAR ${cupons.length} REGISTROS PARA CSV` : 'NENHUM DADO PARA EXPORTAR'}
                     </button>
-                    <button onClick={handleLogout} className="logout-button">Sair</button>
+                    <button onClick={handleLogout} className="logout-button">SAIR</button>
                 </div>
             </header>
+            <hr className="admin-separator" />
 
             {loadingData && <p className="loading-message">Carregando dados...</p>}
             {dataError && <p className="error-message">{dataError}</p>}
@@ -208,14 +213,15 @@ const AdminPanel = () => {
                             </tr>
                         </thead>
                         <tbody>
+                            {/* ADICIONA data-label PARA RESPONSIVIDADE MOBILE (CARD VIEW) */}
                             {cupons.map((c) => (
                                 <tr key={c.coupon_uuid} className={`status-${c.status_uso.toLowerCase().replace('_', '-')}`}>
-                                    <td>{c.nome}</td>
-                                    <td>{c.telefone}</td>
-                                    <td>{c.endereco}</td>
-                                    <td>{c.status_uso.replace('_', ' ')}</td>
-                                    <td title={c.coupon_uuid}>{c.coupon_uuid.substring(0, 8)}...</td>
-                                    <td>{new Date(c.data_cadastro).toLocaleDateString()}</td>
+                                    <td data-label="Nome">{c.nome}</td>
+                                    <td data-label="Telefone">{c.telefone}</td>
+                                    <td data-label="Endereço">{c.endereco}</td>
+                                    <td data-label="Status Uso">{c.status_uso.replace('_', ' ')}</td>
+                                    <td data-label="Código Cupom" title={c.coupon_uuid}>{c.coupon_uuid.substring(0, 8)}...</td>
+                                    <td data-label="Cadastrado Em">{new Date(c.data_cadastro).toLocaleDateString('pt-BR')}</td>
                                 </tr>
                             ))}
                         </tbody>
