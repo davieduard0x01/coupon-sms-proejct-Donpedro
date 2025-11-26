@@ -58,7 +58,6 @@ const AdminPanel = () => {
         setDataError('');
 
         try {
-            // Rota correta para buscar leads
             const response = await fetch(`${API_BASE_URL}/admin/leads`, { 
                 method: 'GET',
                 headers: { 
@@ -181,8 +180,8 @@ const AdminPanel = () => {
         <div className="admin-container dashboard-panel">
             <header className="admin-header">
                 {/* BLOCO DE INFORMAÇÃO DO USUÁRIO E TÍTULO */}
-                <div className="admin-info">
-                    <h1>Dashboard Admin </h1>
+                <div className="admin-info-content">
+                    <h1>Dashboard de Leads e Cupons</h1>
                     <p>Usuário logado: **{usuario}** ({nivelAcesso})</p>
                 </div>
                 {/* BLOCO DE AÇÕES (EXPORTAR/SAIR) */}
@@ -193,14 +192,18 @@ const AdminPanel = () => {
                     <button onClick={handleLogout} className="logout-button">SAIR</button>
                 </div>
             </header>
-            <hr className="admin-separator" />
+            <hr className="admin-separator" /> {/* Separador visual */}
 
             {loadingData && <p className="loading-message">Carregando dados...</p>}
             {dataError && <p className="error-message">{dataError}</p>}
 
+            {/* Total de Cadastros (FORA da tabela) */}
+            {!loadingData && cupons.length > 0 && (
+                <p className="total-count">Total de Cadastros: **{cupons.length}**</p>
+            )}
+
             {!loadingData && cupons.length > 0 && (
                 <div className="data-table-wrapper">
-                    <p className="total-count">Total de Cadastros: **{cupons.length}**</p>
                     <table>
                         <thead>
                             <tr>
@@ -213,7 +216,6 @@ const AdminPanel = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {/* ADICIONA data-label PARA RESPONSIVIDADE MOBILE (CARD VIEW) */}
                             {cupons.map((c) => (
                                 <tr key={c.coupon_uuid} className={`status-${c.status_uso.toLowerCase().replace('_', '-')}`}>
                                     <td data-label="Nome">{c.nome}</td>
