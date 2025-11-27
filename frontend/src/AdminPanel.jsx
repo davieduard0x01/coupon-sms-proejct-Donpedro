@@ -197,7 +197,7 @@ const AdminPanel = () => {
             {loadingData && <p className="loading-message">Carregando dados...</p>}
             {dataError && <p className="error-message">{dataError}</p>}
 
-            {/* Total de Cadastros (FORA da tabela) */}
+            {/* Total de Cadastros (FORA da tabela, mas dentro do painel) */}
             {!loadingData && cupons.length > 0 && (
                 <p className="total-count">Total de Cadastros: **{cupons.length}**</p>
             )}

@@ -1,11 +1,11 @@
-// Arquivo: frontend/src/FuncionarioApp.jsx (VERSÃO FINAL COM CORREÇÃO DE LAYOUT)
+// Arquivo: frontend/src/FuncionarioApp.jsx (CÓDIGO FINAL E ESTÁVEL)
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode'; 
 import './Admin.css'; 
-// ... (restante das importações e constantes)
 
 const API_BASE_URL = 'http://localhost:3001';
+
 
 // --- Componente do Scanner (Gerencia a Câmera) ---
 const QrCodeScanner = ({ onScanSuccess, onScanError }) => {
@@ -23,31 +23,39 @@ const QrCodeScanner = ({ onScanSuccess, onScanError }) => {
         html5QrCodeRef.current = html5QrCode; 
 
         const config = {
-            fps: 10,
-            qrbox: { width: 300, height: 300 },
+            fps: 15, // Aumentado para 15 FPS para melhor processamento
+            qrbox: { width: 300, height: 300 }, // Área de escaneamento
             disableFlip: false,
+        };
+
+        const stopAndCallback = (decodedText) => {
+             // Garante que a instância está ativa antes de parar
+            if (html5QrCodeRef.current && html5QrCodeRef.current.isScanning) {
+                html5QrCodeRef.current.stop().then(() => {
+                    onScanSuccess(decodedText); 
+                }).catch(err => {
+                    console.error("Falha ao parar o scanner após sucesso:", err);
+                    onScanError("Falha ao encerrar a câmera. Recarregue a página.");
+                });
+            }
         };
 
         html5QrCode.start(
             { facingMode: "environment" },
             config,
             (decodedText, decodedResult) => {
-                if (html5QrCode.isScanning) {
-                    html5QrCode.stop().then(() => {
-                        onScanSuccess(decodedText);
-                    }).catch(err => {
-                        console.error("Falha ao parar o scanner:", err);
-                    });
-                }
+                // SUCESSO NA LEITURA: Chama a parada segura
+                stopAndCallback(decodedText);
             },
             (errorMessage) => {
-                // Log de erro de leitura
+                // Erro de leitura (silencioso)
             }
         ).catch((err) => {
             onScanError(`Erro ao iniciar a câmera: ${err.message}. Verifique as permissões.`);
             console.error("Erro fatal ao iniciar o scanner:", err);
         });
 
+        // Limpeza (Unmount): Garante que o scanner para
         return () => {
             if (html5QrCodeRef.current && html5QrCodeRef.current.isScanning) {
                 html5QrCodeRef.current.stop().catch(err => console.log("Stop failed on unmount", err));
@@ -67,7 +75,7 @@ const QrCodeScanner = ({ onScanSuccess, onScanError }) => {
 
 
 const FuncionarioApp = () => {
-    // --- Estados (Mantidos os mesmos) ---
+    // --- Estados (Mantidos) ---
     const [token, setToken] = useState(localStorage.getItem('funcToken') || '');
     const [nivelAcesso, setNivelAcesso] = useState(localStorage.getItem('funcNivel') || '');
     const [usuario, setUsuario] = useState('');
@@ -81,28 +89,100 @@ const FuncionarioApp = () => {
     const [validationMode, setValidationMode] = useState('manual'); 
 
 
-    // --- Lógica de Limpeza e Validação (Mantida a mesma) ---
+    // --- Funções de Ajuda para Limpeza ---
     const stopScanner = () => {
+        // Função que para a câmera quando mudamos de modo
         try {
             const html5QrCodeCleanup = new Html5Qrcode("reader", { verbose: false });
             if (html5QrCodeCleanup.isScanning) {
                 html5QrCodeCleanup.stop().catch(err => console.log("Stop failed on cleanup", err));
             }
-        } catch (e) { }
+        } catch (e) { /* Ignora o erro se o elemento não existir */ }
     }
 
+    // --- Efeito de Limpeza ao Mudar Modo ---
     useEffect(() => {
         if (validationMode === 'manual') {
             stopScanner();
         }
     }, [validationMode]);
     
-    const handleLogin = async (e) => { /* ... lógica de login ... */ };
-    const handleValidation = async (codeToValidate) => { /* ... lógica de validação ... */ };
-    const handleLogout = () => { /* ... lógica de logout ... */ stopScanner(); };
-    const handleErrorScan = (message) => { /* ... lógica de erro ... */ };
-
     
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setLoginError('');
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usuario, senha }),
+            });
+            const data = await response.json();
+            if (response.ok) {
+                localStorage.setItem('funcToken', data.token);
+                localStorage.setItem('funcNivel', data.nivel);
+                setToken(data.token);
+                setNivelAcesso(data.nivel);
+            } else {
+                setLoginError(data.message || 'Credenciais inválidas.');
+            }
+        } catch (error) {
+            setLoginError('Erro de conexão com o servidor de autenticação.');
+        }
+    };
+
+
+    // --- Lógica de Validação do Cupom (Chama a API) ---
+    const handleValidation = async (codeToValidate) => {
+        setValidationLoading(true);
+        setValidationResult(null);
+
+        if (!codeToValidate) {
+            setValidationResult({ success: false, message: 'Código vazio. Tente novamente.' });
+            setValidationLoading(false);
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/func/validate`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-Auth-Token': token 
+                },
+                body: JSON.stringify({ couponUUID: codeToValidate }), 
+            });
+
+            const data = await response.json();
+            
+            if (response.ok) {
+                setValidationResult({ success: true, message: data.message, nome: data.nome });
+            } else {
+                setValidationResult({ success: false, message: data.message });
+            }
+
+        } catch (error) {
+            setValidationResult({ success: false, message: 'Erro de comunicação com o servidor.' });
+        } finally {
+            setValidationLoading(false);
+            setScanCode(''); 
+            setValidationMode('manual'); 
+        }
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('funcToken');
+        localStorage.removeItem('funcNivel');
+        setToken('');
+        setNivelAcesso('');
+        stopScanner();
+    };
+    
+    const handleErrorScan = (message) => {
+        setValidationResult({ success: false, message: message });
+    };
+
+
     // --- Renderização de Login ---
     if (!token) {
         return (
@@ -123,7 +203,7 @@ const FuncionarioApp = () => {
     return (
         <div className="admin-container scanner-panel">
             <header className="admin-header">
-                {/* NOVO: Bloco de Info */}
+                {/* Bloco de Info */}
                 <div className="admin-info-content">
                     <h1>Validação de Cupom</h1>
                     <p>Usuário: {usuario} ({nivelAcesso})</p>
@@ -133,10 +213,10 @@ const FuncionarioApp = () => {
                 <button onClick={handleLogout} className="logout-button">SAIR</button>
             </header>
             
-            {/* NOVO SEPARADOR VISUAL (A linha vermelha) */}
+            {/* SEPARADOR VISUAL */}
             <div className="header-separator"></div>
             
-            {/* BOTÕES DE ALTERNÂNCIA DE MODO (Não aninhado no header) */}
+            {/* BOTÕES DE ALTERNÂNCIA DE MODO */}
             <div className="scanner-mode-toggle">
                 <button 
                     onClick={() => setValidationMode('camera')}

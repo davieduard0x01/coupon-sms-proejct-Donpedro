@@ -44,8 +44,8 @@ body {
     margin: 20px auto;
 }
 
+/* Header do Scanner (sem borda no final, pois o separador está fora) */
 .admin-header {
-    /* O Header do Scanner não tem borda, mas tem padding */
     padding: 20px 20px 10px 20px; 
     border-bottom: none; 
     margin-bottom: 0; 
@@ -56,7 +56,7 @@ body {
     flex-wrap: wrap;
 }
 
-/* Novo Separador Vermelho ABAIXO DO HEADER (Aplica a linha divisória) */
+/* Novo Separador Vermelho ABAIXO DO HEADER - USADO PELO FUNCIONARIO APP */
 .header-separator {
     width: 100%;
     height: 0;
@@ -64,81 +64,24 @@ body {
     margin-bottom: 25px; /* Espaço entre a linha e os botões */
 }
 
-/* --- BOTÕES DE ALTERNÂNCIA (Toggle) --- */
-.scanner-mode-toggle {
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 25px; 
-    padding: 0 20px;
-    gap: 15px;
-}
+/* --- BOTÕES DE ALTERNÂNCIA (Toggle) e INPUTS --- */
+.scanner-mode-toggle { display: flex; justify-content: space-around; margin-bottom: 25px; padding: 0 20px; gap: 15px; }
 .mode-button { flex-grow: 1; padding: 10px 15px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; background-color: #f7f7f7; color: #555; font-weight: 500; font-size: 0.85em; transition: all 0.3s; }
 .mode-button.active-mode { background-color: #CC0000; color: white; border-color: #CC0000; }
-
-/* --- ÁREA DE INPUT MANUAL --- */
-.validation-form {
-    display: flex;
-    flex-direction: column;
-    gap: 18px; 
-    padding: 30px 20px;
-    border-top: 1px solid #eee;
-    border-radius: 8px;
-    background-color: white;
-    margin-bottom: 20px;
-}
+.validation-form { display: flex; flex-direction: column; gap: 18px; padding: 30px 20px; border-top: 1px solid #eee; border-radius: 8px; background-color: white; margin-bottom: 20px; }
 .validation-form input { padding: 14px 15px; border: 1px solid #ccc; border-radius: 6px; font-size: 1em; }
 .validation-form button { background-color: #CC0000; color: white; padding: 15px; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; }
 
-/* --- ÁREA DA CÂMERA (CORREÇÃO CRÍTICA DE DUPLICAÇÃO E DIMENSÃO) --- */
-.camera-area {
-    margin-bottom: 20px;
-    padding: 0 20px;
-    text-align: center;
-    border-top: 1px solid #eee;
-    padding-top: 20px;
-}
 
-/* REGRA CRÍTICA 1: Estiliza o contêiner principal do scanner */
-#reader {
-    width: 100% !important; 
-    height: 350px !important; 
-    margin: 15px auto; 
-    border-radius: 8px;
-    overflow: hidden; 
-    border: 1px solid #ccc;
-    background-color: #333; 
-}
-
-/* REGRA CRÍTICA 2: Força o elemento de vídeo/canvas a preencher o contêiner */
-#reader > video, 
-#reader > canvas,
-#reader > div {
-    width: 100% !important; 
-    height: 100% !important;
-    object-fit: cover !important;
-}
-
-/* REGRA CRÍTICA 3: OCULTA INSTÂNCIAS DUPLICADAS DO VÍDEO (RESOLVE O PROBLEMA VISUAL) */
-#reader > video:nth-of-type(n+2),
-#reader > canvas:nth-of-type(n+2) {
-    display: none !important;
-}
-
-
+/* --- ÁREA DA CÂMERA (CORREÇÃO DE DUPLICAÇÃO E DIMENSÃO) --- */
+.camera-area { margin-bottom: 20px; padding: 0 20px; text-align: center; border-top: 1px solid #eee; padding-top: 20px; }
+#reader { width: 100% !important; height: 350px !important; margin: 15px auto; border-radius: 8px; overflow: hidden; border: 1px solid #ccc; background-color: #333; }
+#reader > video, #reader > canvas, #reader > div { width: 100% !important; height: 100% !important; object-fit: cover !important; }
+#reader > video:nth-of-type(n+2), #reader > canvas:nth-of-type(n+2) { display: none !important; }
 /* --- RESULTADO DA VALIDAÇÃO --- */
-.validation-result {
-    padding: 30px; 
-    border-radius: 8px;
-    text-align: center;
-    font-weight: 700;
-    margin: 20px; 
-}
-
+.validation-result { padding: 30px; border-radius: 8px; text-align: center; font-weight: 700; margin: 20px; }
 .validation-result.error { background-color: #fcebeb; color: #CC0000; border: 2px solid #CC0000; }
 .validation-result.success { background-color: #e6f9e6; color: #1e8449; border: 2px solid #1e8449; }
-.result-status { font-size: 1.8em; margin-bottom: 10px; }
-.result-status.error::before { content: "❌"; margin-right: 10px; }
-.result-status.success::before { content: "✅"; margin-right: 10px; }
 
 
 /* ---------------------------------------------------- */
@@ -151,8 +94,8 @@ body {
     padding: 20px; 
 }
 
-.admin-header {
-    /* Redefinido aqui para o Dashboard, mantendo o border-bottom */
+/* CORREÇÃO ESTRUTURAL DE DESKTOP: Garante que os blocos fiquem alinhados */
+.dashboard-panel .admin-header {
     display: flex;
     justify-content: space-between;
     align-items: center; 
@@ -160,8 +103,15 @@ body {
     
     margin-bottom: 25px; 
     padding-bottom: 10px;
-    border-bottom: 2px solid #CC0000;
-    padding: 0; 
+    border-bottom: 2px solid #CC0000; 
+    padding: 0; /* Removendo padding lateral */
+}
+
+/* Bloco de Informação do Usuário (para o Desktop) */
+.admin-info-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
 .admin-actions {
@@ -196,23 +146,64 @@ body {
     transition: background-color 0.3s;
 }
 
+/* --- ESTILOS DA TABELA (MELHORIAS DE PROFISSIONALISMO) --- */
+
+.data-table-wrapper {
+    overflow-x: auto;
+    background-color: #fff;
+    padding: 15px; /* Mais padding interno */
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Refinamento das Células (Desktop) */
+th, td {
+    padding: 12px 15px; /* Espaçamento profissional */
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0; /* Linha mais clara */
+    font-size: 0.9em;
+    vertical-align: top;
+}
+
+th {
+    background-color: #f7f7f7; /* Cabeçalho cinza claro */
+    font-weight: bold;
+    color: #555; /* Texto mais suave */
+    text-transform: uppercase;
+}
+
+/* Estilos de Status (Cores Suaves para Profissionalismo) */
+.data-table-wrapper tr.status-nao-utilizado {
+    background-color: #f0f8ff; /* Azul/Branco Suave */
+}
+.data-table-wrapper tr.status-utilizado {
+    background-color: #f2fff2; /* Verde/Branco Suave */
+    color: #1a7a40; 
+}
+.data-table-wrapper tr.status-expirado {
+    background-color: #fcfcfc;
+    color: #999;
+}
+
+.total-count {
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #CC0000;
+}
+
 /* ---------------------------------------------------- */
 /* --- OTIMIZAÇÃO MOBILE (@media screen and (max-width: 768px)) --- */
 /* ---------------------------------------------------- */
 
 @media screen and (max-width: 768px) {
+    /* ... (Regras de Mobile Card View permanecem as mesmas e corretas) ... */
     
-    .admin-container {
-        padding: 10px;
-    }
-
-    /* 1. LAYOUT DO HEADER E BOTÕES (Empilhamento) */
-    .admin-header {
-        flex-direction: column; 
-        align-items: flex-start;
-        padding: 0 5px;
-    }
-
     .admin-actions {
         width: 100%; 
         flex-direction: column; 
@@ -226,19 +217,4 @@ body {
         padding: 12px;
         font-size: 1em;
     }
-
-    /* 2. LAYOUT DA TABELA (CARDS) */
-    
-    table thead { display: none; }
-    table, tbody, tr, td { display: block; width: 100%; }
-    
-    tr { margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 10px; }
-    
-    td { text-align: right; padding: 5px 10px; padding-left: 50%; position: relative; border-bottom: 0; }
-    td::before { content: attr(data-label) ":"; position: absolute; left: 0px; width: 45%; padding-left: 10px; font-weight: bold; text-align: left; color: #555; font-size: 0.9em; }
 }
-
-/* Estilos de Status na Tabela */
-.data-table-wrapper tr.status-nao-utilizado { background-color: #e6f7ff; }
-.data-table-wrapper tr.status-utilizado { background-color: #d4edda; color: #155724; }
-.data-table-wrapper tr.status-expirado { background-color: #f7f7f7; color: #6c757d; }
