@@ -1,4 +1,4 @@
-// ARQUIVO: coupon-sms-project/backend/index.js (VERSÃO FINAL COM TWILIO MESSAGES SIMPLES)
+// ARQUIVO: coupon-sms-project/backend/index.js (VERSÃO FINAL COM REACESSO SEGURO)
 
 require('dotenv').config();
 const express = require('express');
@@ -6,14 +6,13 @@ const cors = require('cors');
 const { createClient } = require('@supabase/supabase-js');
 const { v4: uuidv4 } = require('uuid');
 const twilio = require('twilio'); 
-const moment = require('moment-timezone'); // Adiciona biblioteca para gerenciar tempo (npm install moment-timezone)
+const moment = require('moment-timezone'); // Garanta que npm install moment-timezone foi executado
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // --- Configurações Fixas e Chaves ---
 const FIXED_COUPON_CODE = "D0nP3dro20"; 
-// As chaves do Twilio Verify (VA...) não são mais usadas aqui.
 
 const corsOptions = {
     origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'], 
@@ -48,8 +47,6 @@ const generateOTP = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-// ... (Middlewares authenticateAccess e requireAdmin permanecem os mesmos) ...
-
 const authenticateAccess = async (req, res, next) => {
     const token = req.header('X-Auth-Token');
     if (!token) { return res.status(401).json({ message: 'Token de autenticação ausente.' }); }
@@ -80,7 +77,7 @@ const requireAdmin = (req, res, next) => {
 
 
 // ----------------------------------------------------
-// --- ROTAS DO CADASTRO (ETAPA 1: ENVIAR SMS SIMPLES) ---
+// --- ROTAS DO CADASTRO (ETAPA 1: ENVIAR SMS) ---
 // ----------------------------------------------------
 
 app.post('/api/send-otp', async (req, res) => {
@@ -96,18 +93,19 @@ app.post('/api/send-otp', async (req, res) => {
         return res.status(400).json({ message: 'Formato de número inválido. Use o formato dos EUA.' });
     }
 
-    // 1. VERIFICAR DUPLICIDADE (SE JÁ TEM CADASTRO PERMANENTE)
+    // 1. VERIFICAR SE O USUÁRIO É ANTIGO OU NOVO
+    let isExistingUser = false;
+    let existingUserName = name;
     try {
-        const { data: existingCupons } = await supabase
+        const { data: cupons } = await supabase
             .from('leads_cupons')
-            .select('*')
-            .eq('telefone', normalizedNumber);
+            .select('nome')
+            .eq('telefone', normalizedNumber)
+            .limit(1);
 
-        if (existingCupons && existingCupons.length > 0) {
-            return res.status(409).json({ 
-                message: `Olá, ${existingCupons[0].nome}. Seu número já está cadastrado.`,
-                cupons: existingCupons
-            });
+        if (cupons && cupons.length > 0) {
+            isExistingUser = true;
+            existingUserName = cupons[0].nome; // Mantém o nome cadastrado
         }
     } catch (dbError) {
         console.error('Erro ao consultar Supabase (Cadastro):', dbError);
@@ -141,20 +139,22 @@ app.post('/api/send-otp', async (req, res) => {
     try {
         await twilioClient.messages.create({
             body: `Seu código de verificação DONPEDRO é ${otpCode}. Válido por 5 minutos.`,
-            from: process.env.TWILIO_PHONE_NUMBER, // Seu número Twilio (remetente)
-            to: normalizedNumber, // Número do usuário
+            from: process.env.TWILIO_PHONE_NUMBER, 
+            to: normalizedNumber, 
         });
 
-        // Sucesso: O frontend deve salvar os dados (name, phone, address) para a próxima etapa
+        // Sucesso: Retorna o status e se é um usuário antigo (para a mensagem)
         return res.status(200).json({ 
-            message: `Código de verificação enviado para ${normalizedNumber}.`,
+            message: isExistingUser 
+                     ? `Olá ${existingUserName}, o código foi enviado para revalidação.` 
+                     : `Código de verificação enviado para ${normalizedNumber}.`,
             phone: normalizedNumber, 
-            status: 'pending'
+            status: 'pending',
+            isExistingUser: isExistingUser // INFORMA O FRONT SOBRE O STATUS
         });
 
     } catch (e) {
         console.error('Erro Twilio Messages (Envio):', e);
-        // Isso geralmente é erro 21608 (Trial unverified)
         return res.status(500).json({ message: 'Erro ao enviar o SMS. Verifique se o número está verificado no Twilio (erro 21608).'});
     }
 });
@@ -173,7 +173,7 @@ app.post('/api/check-otp', async (req, res) => {
     
     const phone_with_plus = phone.startsWith('+') ? phone : '+' + phone;
 
-    // 1. VERIFICAR O CÓDIGO E TEMPO DE EXPIRAÇÃO NO SUPABASE
+    // 1. VERIFICAR O CÓDIGO E TEMPO DE EXPIRAÇÃO NO SUPABASE (A SEGURANÇA)
     try {
         const { data: session, error: sessionError } = await supabase
             .from('otp_sessions')
@@ -189,11 +189,11 @@ app.post('/api/check-otp', async (req, res) => {
         const expiryTime = moment(session[0].expira_em);
         
         const isCodeValid = (code === storedCode);
-        const isExpired = expiryTime.isBefore(moment()); // Verifica se o tempo atual é depois da expiração
+        const isExpired = expiryTime.isBefore(moment()); 
         
         // 2. CÓDIGO INVÁLIDO OU EXPIRADO
         if (isExpired) {
-            await supabase.from('otp_sessions').delete().eq('telefone', phone_with_plus); // Limpa a sessão
+            await supabase.from('otp_sessions').delete().eq('telefone', phone_with_plus);
             return res.status(401).json({ message: 'Código expirado. Tente o cadastro novamente.' });
         }
         
@@ -201,37 +201,53 @@ app.post('/api/check-otp', async (req, res) => {
             return res.status(401).json({ message: 'Código de verificação inválido.' });
         }
 
-        // 3. CÓDIGO APROVADO: SALVAR LEAD PERMANENTEMENTE
+        // 3. CÓDIGO APROVADO: DECISÃO (NOVO CADASTRO VS REACESSO)
         
-        // Antes de salvar, limpa a sessão OTP
+        // Limpa a sessão OTP imediatamente após o código ser aprovado
         await supabase.from('otp_sessions').delete().eq('telefone', phone_with_plus);
+        
+        // --- AQUI ESTÁ A LÓGICA DE SEGURANÇA DE REACESSO ---
+        const { data: existingCupons } = await supabase
+            .from('leads_cupons')
+            .select('*')
+            .eq('telefone', phone_with_plus);
 
-        const couponUUID = uuidv4(); 
-        const registrationData = {
-            coupon_uuid: couponUUID,
-            nome: name,
-            telefone: phone_with_plus, 
-            endereco: address,
-            status_uso: 'NAO_UTILIZADO',
-            coupon_code: FIXED_COUPON_CODE, 
-        };
+        if (existingCupons && existingCupons.length > 0) {
+            // FLUXO DE REACESSO: Usuário validou o telefone, retorna o QR Code existente
+            const cuponsValidos = existingCupons.filter(c => c.status_uso === 'NAO_UTILIZADO');
+            const cupomPrincipal = cuponsValidos.length > 0 ? cuponsValidos[0].coupon_uuid : existingCupons[0].coupon_uuid;
 
-        try {
+            return res.status(200).json({ 
+                message: `Acesso verificado. Cupons disponíveis para ${existingCupons[0].nome}.`,
+                couponUUID: cupomPrincipal, 
+                couponCode: FIXED_COUPON_CODE,
+                isExistingUser: true
+            });
+
+        } else {
+            // FLUXO DE NOVO CADASTRO: Insere no DB (após 100% de certeza do OTP)
+            const couponUUID = uuidv4(); 
+            const registrationData = {
+                coupon_uuid: couponUUID,
+                nome: name,
+                telefone: phone_with_plus, 
+                endereco: address,
+                status_uso: 'NAO_UTILIZADO',
+                coupon_code: FIXED_COUPON_CODE, 
+            };
+
             await supabase.from('leads_cupons').insert([registrationData]);
 
-            // 4. SUCESSO FINAL: Retorna o UUID para o QR Code
             return res.status(200).json({ 
                 message: `Verificação concluída. Cadastro finalizado!`,
                 couponUUID: couponUUID, 
                 couponCode: FIXED_COUPON_CODE 
             });
-        } catch (insertError) {
-             console.error('Falha de duplicidade APÓS OTP APROVADO:', insertError);
-             return res.status(500).json({ message: 'Erro de cadastro. Contate o suporte.' });
         }
 
+
     } catch (e) {
-        console.error('Erro na Checagem OTP:', e);
+        console.error('Erro na Checagem OTP/DB:', e);
         return res.status(500).json({ message: 'Erro interno ao validar o código ou salvar o cadastro.' });
     }
 });
@@ -244,7 +260,6 @@ app.post('/api/check-otp', async (req, res) => {
 /** Rota de Login */
 app.post('/auth/login', async (req, res) => {
     const { usuario, senha } = req.body;
-    // ... (Lógica de login no DB users_acesso) ...
     try {
         const { data, error } = await supabase
             .from('users_acesso')
@@ -272,7 +287,6 @@ app.post('/auth/login', async (req, res) => {
 
 /** Rota de Validação/Scanner (Funcionário) */
 app.post('/func/validate', authenticateAccess, async (req, res) => {
-    // ... (Lógica de validação do QR Code permanece a mesma) ...
     const { couponUUID } = req.body; 
     
     if (req.user_nivel !== 'FUNCIONARIO' && req.user_nivel !== 'ADMIN') {
@@ -327,7 +341,6 @@ app.post('/func/validate', authenticateAccess, async (req, res) => {
 
 /** Rota para Obter Leads (Apenas Admin) */
 app.get('/admin/leads', authenticateAccess, requireAdmin, async (req, res) => {
-    // ... (Lógica de leads do Admin) ...
     try {
         const { data: leads, error } = await supabase
             .from('leads_cupons')
