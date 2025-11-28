@@ -1,12 +1,12 @@
-// ARQUIVO: coupon-sms-project/backend/index.js (VERSÃO FINAL COM REACESSO SEGURO)
+// ARQUIVO: coupon-sms-project/backend/index.js (VERSÃO FINAL COM REACESSO SEGURO E CORS PRODUÇÃO)
 
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors'); 
 const { createClient } = require('@supabase/supabase-js');
-const { v4: uuidv4 } = require('uuid');
+const { v4: uuidv4 } = require('uuid'); // Gera UUIDs para QR Code
 const twilio = require('twilio'); 
-const moment = require('moment-timezone'); // Garanta que npm install moment-timezone foi executado
+const moment = require('moment-timezone'); // Garante que npm install moment-timezone foi executado
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -14,8 +14,12 @@ const PORT = process.env.PORT || 3001;
 // --- Configurações Fixas e Chaves ---
 const FIXED_COUPON_CODE = "D0nP3dro20"; 
 
+// CORREÇÃO CRÍTICA DO CORS: Autoriza a URL pública da Vercel
+const VERCEL_FRONTEND_URL = 'https://coupon-sms-proejct-donpedro.vercel.app';
+
 const corsOptions = {
-    origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'], 
+    // Permite a comunicação do seu frontend Vercel e portas locais de desenvolvimento
+    origin: [VERCEL_FRONTEND_URL, 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'], 
     optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
@@ -47,9 +51,11 @@ const generateOTP = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
+/** Middleware de Autenticação para Funções */
 const authenticateAccess = async (req, res, next) => {
     const token = req.header('X-Auth-Token');
     if (!token) { return res.status(401).json({ message: 'Token de autenticação ausente.' }); }
+
     try {
         const [usuario, nivel] = token.split(':');
         const { data, error } = await supabase
@@ -57,6 +63,7 @@ const authenticateAccess = async (req, res, next) => {
             .select('nivel')
             .eq('usuario', usuario)
             .limit(1);
+
         if (error || !data || data.length === 0) {
             return res.status(401).json({ message: 'Usuário não encontrado ou token inválido.' });
         }
@@ -68,6 +75,7 @@ const authenticateAccess = async (req, res, next) => {
     }
 };
 
+/** Middleware para restringir o acesso apenas a ADMIN */
 const requireAdmin = (req, res, next) => {
     if (req.user_nivel !== 'ADMIN') {
         return res.status(403).json({ message: 'Acesso negado. Requer privilégios de Administrador.' });
@@ -93,8 +101,7 @@ app.post('/api/send-otp', async (req, res) => {
         return res.status(400).json({ message: 'Formato de número inválido. Use o formato dos EUA.' });
     }
 
-    // 1. VERIFICAR SE O USUÁRIO É ANTIGO OU NOVO
-    let isExistingUser = false;
+    // 1. VERIFICAR SE O USUÁRIO É ANTIGO OU NOVO (Apenas para ajustar a mensagem)
     let existingUserName = name;
     try {
         const { data: cupons } = await supabase
@@ -104,8 +111,7 @@ app.post('/api/send-otp', async (req, res) => {
             .limit(1);
 
         if (cupons && cupons.length > 0) {
-            isExistingUser = true;
-            existingUserName = cupons[0].nome; // Mantém o nome cadastrado
+            existingUserName = cupons[0].nome;
         }
     } catch (dbError) {
         console.error('Erro ao consultar Supabase (Cadastro):', dbError);
@@ -123,7 +129,7 @@ app.post('/api/send-otp', async (req, res) => {
     };
     
     try {
-        // Tenta inserir ou atualizar a sessão OTP
+        // Tenta inserir ou atualizar a sessão OTP (upsert)
         const { error: otpError } = await supabase
             .from('otp_sessions')
             .upsert([otpSessionData], { onConflict: 'telefone' }); 
@@ -143,18 +149,16 @@ app.post('/api/send-otp', async (req, res) => {
             to: normalizedNumber, 
         });
 
-        // Sucesso: Retorna o status e se é um usuário antigo (para a mensagem)
+        // Sucesso: Retorna a mensagem correta (novo usuário ou reacesso)
         return res.status(200).json({ 
-            message: isExistingUser 
-                     ? `Olá ${existingUserName}, o código foi enviado para revalidação.` 
-                     : `Código de verificação enviado para ${normalizedNumber}.`,
+            message: `Código de verificação enviado para ${normalizedNumber}.`,
             phone: normalizedNumber, 
-            status: 'pending',
-            isExistingUser: isExistingUser // INFORMA O FRONT SOBRE O STATUS
+            status: 'pending'
         });
 
     } catch (e) {
         console.error('Erro Twilio Messages (Envio):', e);
+        // Retorna o erro 500 para o frontend
         return res.status(500).json({ message: 'Erro ao enviar o SMS. Verifique se o número está verificado no Twilio (erro 21608).'});
     }
 });
@@ -173,7 +177,7 @@ app.post('/api/check-otp', async (req, res) => {
     
     const phone_with_plus = phone.startsWith('+') ? phone : '+' + phone;
 
-    // 1. VERIFICAR O CÓDIGO E TEMPO DE EXPIRAÇÃO NO SUPABASE (A SEGURANÇA)
+    // 1. VERIFICAR O CÓDIGO E TEMPO DE EXPIRAÇÃO NO SUPABASE
     try {
         const { data: session, error: sessionError } = await supabase
             .from('otp_sessions')
@@ -213,7 +217,7 @@ app.post('/api/check-otp', async (req, res) => {
             .eq('telefone', phone_with_plus);
 
         if (existingCupons && existingCupons.length > 0) {
-            // FLUXO DE REACESSO: Usuário validou o telefone, retorna o QR Code existente
+            // FLUXO DE REACESSO SEGURO: Usuário validou o telefone, retorna o QR Code existente
             const cuponsValidos = existingCupons.filter(c => c.status_uso === 'NAO_UTILIZADO');
             const cupomPrincipal = cuponsValidos.length > 0 ? cuponsValidos[0].coupon_uuid : existingCupons[0].coupon_uuid;
 
