@@ -1,4 +1,4 @@
-// ARQUIVO: frontend/src/AdminPanel.jsx (CÓDIGO FINAL E COMPLETO COM CORREÇÃO DE SEGURANÇA)
+// ARQUIVO: frontend/src/AdminPanel.jsx (CÓDIGO FINAL E COMPLETO)
 
 import React, { useState, useEffect } from 'react';
 import './Admin.css'; 
@@ -34,6 +34,15 @@ const convertToCSV = (data) => {
 
     return "\uFEFF" + csvContent; // Adiciona BOM para compatibilidade com Excel
 };
+
+// >>> NOVA FUNÇÃO: Limpar o número de telefone para ter apenas dígitos e o sinal de + <<<
+const cleanPhoneNumber = (phoneNumber) => {
+    if (!phoneNumber) return '';
+    // Remove tudo que não for dígito e o sinal de '+'
+    return phoneNumber.replace(/[^\d+]/g, ''); 
+};
+// --------------------------------------------------------------------------------------
+
 
 const AdminPanel = () => {
     // --- Estados de Autenticação e Dados ---
@@ -134,6 +143,9 @@ const AdminPanel = () => {
     const handleExportCSV = () => {
         if (cupons.length === 0) return;
 
+        // Ao exportar, podemos manter a formatação original ou usar a limpa se for o caso.
+        // Neste código, a função convertToCSV usa o valor do banco de dados (que esperamos estar formatado corretamente, ex: "+12673579920").
+        // Se precisar de limpeza também no CSV, precisaremos modificar o convertToCSV.
         const csv = convertToCSV(cupons);
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
@@ -171,7 +183,7 @@ const AdminPanel = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
-                        autocomplete="off" // <<< CORREÇÃO DE SEGURANÇA
+                        autocomplete="off" 
                     />
                     <button type="submit">Acessar Dashboard</button>
                     {loginError && <p className="login-error">{loginError}</p>}
@@ -224,7 +236,8 @@ const AdminPanel = () => {
                             {cupons.map((c) => (
                                 <tr key={c.coupon_uuid} className={`status-${c.status_uso.toLowerCase().replace('_', '-')}`}>
                                     <td data-label="Nome">{c.nome}</td>
-                                    <td data-label="Telefone">{c.telefone}</td>
+                                    {/* Aplica a função de limpeza no telefone */}
+                                    <td data-label="Telefone">{cleanPhoneNumber(c.telefone)}</td>
                                     <td data-label="Endereço">{c.endereco}</td>
                                     <td data-label="Status Uso">{c.status_uso.replace('_', ' ')}</td>
                                     <td data-label="Código Cupom" title={c.coupon_uuid}>{c.coupon_uuid.substring(0, 8)}...</td>
