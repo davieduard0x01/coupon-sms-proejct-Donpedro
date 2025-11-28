@@ -1,4 +1,3 @@
-// Arquivo: frontend/src/FuncionarioApp.jsx (Com Scanner/Câmera)
 
 import React, { useState, useEffect } from 'react';
 import { Html5Qrcode } from 'html5-qrcode'; // Importa a biblioteca do scanner

@@ -1,4 +1,3 @@
-// Arquivo: coupon-sms-project/frontend/src/Admin.jsx (PAINEL DE ADMIN)
 
 import React, { useState, useEffect } from 'react';
 import './Admin.css'; // Vamos criar este CSS logo abaixo

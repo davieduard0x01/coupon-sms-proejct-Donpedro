@@ -1,10 +1,10 @@
-// Arquivo: frontend/src/FuncionarioApp.jsx (CÓDIGO FINAL E ESTÁVEL)
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode'; 
 import './Admin.css'; 
 
-const API_BASE_URL = 'http://localhost:3001';
+// --- URL DE PRODUÇÃO ---
+const API_BASE_URL = 'https://coupon-sms-proejct-donpedro.onrender.com';
+// -----------------------
 
 
 // --- Componente do Scanner (Gerencia a Câmera) ---
@@ -23,13 +23,12 @@ const QrCodeScanner = ({ onScanSuccess, onScanError }) => {
         html5QrCodeRef.current = html5QrCode; 
 
         const config = {
-            fps: 15, // Aumentado para 15 FPS para melhor processamento
-            qrbox: { width: 300, height: 300 }, // Área de escaneamento
+            fps: 15,
+            qrbox: { width: 300, height: 300 },
             disableFlip: false,
         };
 
         const stopAndCallback = (decodedText) => {
-             // Garante que a instância está ativa antes de parar
             if (html5QrCodeRef.current && html5QrCodeRef.current.isScanning) {
                 html5QrCodeRef.current.stop().then(() => {
                     onScanSuccess(decodedText); 
@@ -44,11 +43,10 @@ const QrCodeScanner = ({ onScanSuccess, onScanError }) => {
             { facingMode: "environment" },
             config,
             (decodedText, decodedResult) => {
-                // SUCESSO NA LEITURA: Chama a parada segura
                 stopAndCallback(decodedText);
             },
             (errorMessage) => {
-                // Erro de leitura (silencioso)
+                // Erro de leitura
             }
         ).catch((err) => {
             onScanError(`Erro ao iniciar a câmera: ${err.message}. Verifique as permissões.`);
@@ -91,16 +89,14 @@ const FuncionarioApp = () => {
 
     // --- Funções de Ajuda para Limpeza ---
     const stopScanner = () => {
-        // Função que para a câmera quando mudamos de modo
         try {
             const html5QrCodeCleanup = new Html5Qrcode("reader", { verbose: false });
             if (html5QrCodeCleanup.isScanning) {
                 html5QrCodeCleanup.stop().catch(err => console.log("Stop failed on cleanup", err));
             }
-        } catch (e) { /* Ignora o erro se o elemento não existir */ }
+        } catch (e) { }
     }
 
-    // --- Efeito de Limpeza ao Mudar Modo ---
     useEffect(() => {
         if (validationMode === 'manual') {
             stopScanner();
@@ -108,16 +104,20 @@ const FuncionarioApp = () => {
     }, [validationMode]);
     
     
+    // --- Lógica de Login ---
     const handleLogin = async (e) => {
         e.preventDefault();
         setLoginError('');
+
         try {
             const response = await fetch(`${API_BASE_URL}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ usuario, senha }),
             });
+
             const data = await response.json();
+
             if (response.ok) {
                 localStorage.setItem('funcToken', data.token);
                 localStorage.setItem('funcNivel', data.nivel);
@@ -183,7 +183,7 @@ const FuncionarioApp = () => {
     };
 
 
-    // --- Renderização de Login ---
+    // --- Renderização (Mantida) ---
     if (!token) {
         return (
             <div className="admin-container login-form">
@@ -203,17 +203,14 @@ const FuncionarioApp = () => {
     return (
         <div className="admin-container scanner-panel">
             <header className="admin-header">
-                {/* Bloco de Info */}
                 <div className="admin-info-content">
                     <h1>Validação de Cupom</h1>
                     <p>Usuário: {usuario} ({nivelAcesso})</p>
                 </div>
                 
-                {/* Botão Sair */}
                 <button onClick={handleLogout} className="logout-button">SAIR</button>
             </header>
             
-            {/* SEPARADOR VISUAL */}
             <div className="header-separator"></div>
             
             {/* BOTÕES DE ALTERNÂNCIA DE MODO */}

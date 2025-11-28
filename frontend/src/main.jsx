@@ -1,5 +1,3 @@
-// Arquivo: frontend/src/main.jsx (Roteamento Final)
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';

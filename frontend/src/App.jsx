@@ -1,13 +1,14 @@
-// ARQUIVO: frontend/src/App.jsx (VERSÃO FINAL COM VALIDAÇÃO OTP)
-
 import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react'; 
 import './App.css'; 
 
-const API_SEND_OTP = 'http://localhost:3001/api/send-otp';
-const API_CHECK_OTP = 'http://localhost:3001/api/check-otp';
+// --- URL DE PRODUÇÃO ---
+const API_BASE_URL = 'https://coupon-sms-proejct-donpedro.onrender.com';
+const API_SEND_OTP = `${API_BASE_URL}/api/send-otp`;
+const API_CHECK_OTP = `${API_BASE_URL}/api/check-otp`;
+// -----------------------
 
-// Componente para exibir a lista de cupons existentes (na duplicidade)
+// Componente para exibir a lista de cupons existentes
 const UserCuponsList = ({ cupons, onViewQR }) => ( 
     <div className="coupon-list-wrapper">
         <h2>Meus Cupons Cadastrados</h2>
@@ -87,13 +88,13 @@ function App() {
       
       if (response.ok) {
         // SUCESSO: O código foi enviado. Mude para a tela de validação.
-        setMessage(`Código enviado para ${phone}. Por favor, insira o código de 6 dígitos.`);
+        setMessage(data.message);
         setCurrentPhase('validacao');
         
       } else if (response.status === 409) {
-        // DUPLICIDADE: O usuário já está no DB (não precisa de OTP)
+        // DUPLICIDADE: O usuário já está no DB
         setDuplicityMessage(data.message); 
-        setExistingUserCupons(data.cupons); // Exibe a lista de cupons antigos
+        setExistingUserCupons(data.cupons); 
         
       } else {
         // Erro Twilio/Validação de campo
@@ -101,7 +102,7 @@ function App() {
       }
     } catch (error) {
       console.error('Erro na requisição de envio OTP:', error);
-      setMessage('Erro de conexão. Verifique o servidor.');
+      setMessage('Erro de conexão com o servidor.');
     } finally {
       setLoading(false);
     }
@@ -122,7 +123,7 @@ function App() {
         return;
     }
     
-    // Dados de cadastro são enviados novamente para que o backend salve no DB
+    // Dados de cadastro são enviados novamente para que o backend salve/verifique
     const finalData = { name, phone, address, code: otpCode };
 
     try {
@@ -135,11 +136,11 @@ function App() {
       const data = await response.json();
       
       if (response.ok) {
-        // SUCESSO: Código aprovado e lead salvo no DB.
+        // SUCESSO: Código aprovado e lead salvo ou recuperado.
         setMessage(data.message); 
         setCouponUUID(data.couponUUID); 
         setCouponCode(data.couponCode); 
-        setCurrentPhase('qrcode'); // Mude para a tela final
+        setCurrentPhase('qrcode'); 
         
       } else {
         // CÓDIGO INVÁLIDO ou EXPIRADO
@@ -175,6 +176,7 @@ function App() {
                     setExistingUserCupons(null); 
                     setDuplicityMessage('');
                     setMessage('');
+                    // Mantém os dados para a próxima tentativa
                 }}
                 style={{ marginTop: '20px' }}
             >
@@ -196,7 +198,7 @@ function App() {
             
             <form onSubmit={handleCheckOtp}>
                 <input
-                    type="number" // Tipo number para facilitar a digitação mobile
+                    type="number" 
                     value={otpCode}
                     onChange={(e) => setOtpCode(e.target.value)}
                     placeholder="Insira o Código de 6 dígitos"
@@ -257,7 +259,7 @@ function App() {
 
       <p>Preencha os dados para receber o código de segurança via SMS.</p>
       
-      <form onSubmit={handleSendOtp}> {/* CHAMA handleSendOtp agora */}
+      <form onSubmit={handleSendOtp}> 
         <input
           type="text"
           value={name}

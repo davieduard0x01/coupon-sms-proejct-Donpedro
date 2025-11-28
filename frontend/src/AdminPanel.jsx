@@ -1,4 +1,3 @@
-// Arquivo: frontend/src/AdminPanel.jsx (CÓDIGO FINAL E COMPLETO)
 
 import React, { useState, useEffect } from 'react';
 import './Admin.css'; 

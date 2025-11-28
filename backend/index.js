@@ -1,5 +1,3 @@
-// ARQUIVO: coupon-sms-project/backend/index.js (VERSÃO FINAL COM REACESSO SEGURO E CORS PRODUÇÃO)
-
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors'); 
@@ -164,9 +162,7 @@ app.post('/api/send-otp', async (req, res) => {
 });
 
 
-// ----------------------------------------------------
 // --- ROTAS DO CADASTRO (ETAPA 2: VALIDAR E FINALIZAR) ---
-// ----------------------------------------------------
 
 app.post('/api/check-otp', async (req, res) => {
     const { phone, code, name, address } = req.body; 
@@ -257,9 +253,6 @@ app.post('/api/check-otp', async (req, res) => {
 });
 
 
-// ----------------------------------------------------
-// --- ROTAS DE ACESSO (FUNCIONÁRIO & ADMIN) e LISTEN ---
-// ----------------------------------------------------
 
 /** Rota de Login */
 app.post('/auth/login', async (req, res) => {
