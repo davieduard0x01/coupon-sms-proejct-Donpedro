@@ -1,22 +1,23 @@
+
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors'); 
 const { createClient } = require('@supabase/supabase-js');
-const { v4: uuidv4 } = require('uuid'); // Gera UUIDs para QR Code
+const { v4: uuidv4 } = require('uuid'); 
 const twilio = require('twilio'); 
-const moment = require('moment-timezone'); // Garante que npm install moment-timezone foi executado
+const moment = require('moment-timezone'); 
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // --- Configurações Fixas e Chaves ---
 const FIXED_COUPON_CODE = "D0nP3dro20"; 
+const TWILIO_VERIFY_SERVICE_SID = process.env.TWILIO_VERIFY_SERVICE_SID; // Mantido, embora não usado na rota Message
 
-// CORREÇÃO CRÍTICA DO CORS: Autoriza a URL pública da Vercel
+// CORREÇÃO CRÍTICA DO CORS
 const VERCEL_FRONTEND_URL = 'https://coupon-sms-proejct-donpedro.vercel.app';
 
 const corsOptions = {
-    // Permite a comunicação do seu frontend Vercel e portas locais de desenvolvimento
     origin: [VERCEL_FRONTEND_URL, 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'], 
     optionsSuccessStatus: 200
 };
@@ -49,11 +50,9 @@ const generateOTP = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-/** Middleware de Autenticação para Funções */
 const authenticateAccess = async (req, res, next) => {
     const token = req.header('X-Auth-Token');
     if (!token) { return res.status(401).json({ message: 'Token de autenticação ausente.' }); }
-
     try {
         const [usuario, nivel] = token.split(':');
         const { data, error } = await supabase
@@ -61,7 +60,6 @@ const authenticateAccess = async (req, res, next) => {
             .select('nivel')
             .eq('usuario', usuario)
             .limit(1);
-
         if (error || !data || data.length === 0) {
             return res.status(401).json({ message: 'Usuário não encontrado ou token inválido.' });
         }
@@ -73,7 +71,6 @@ const authenticateAccess = async (req, res, next) => {
     }
 };
 
-/** Middleware para restringir o acesso apenas a ADMIN */
 const requireAdmin = (req, res, next) => {
     if (req.user_nivel !== 'ADMIN') {
         return res.status(403).json({ message: 'Acesso negado. Requer privilégios de Administrador.' });
@@ -99,7 +96,7 @@ app.post('/api/send-otp', async (req, res) => {
         return res.status(400).json({ message: 'Formato de número inválido. Use o formato dos EUA.' });
     }
 
-    // 1. VERIFICAR SE O USUÁRIO É ANTIGO OU NOVO (Apenas para ajustar a mensagem)
+    // 1. VERIFICAR SE O USUÁRIO É ANTIGO OU NOVO
     let existingUserName = name;
     try {
         const { data: cupons } = await supabase
@@ -127,7 +124,7 @@ app.post('/api/send-otp', async (req, res) => {
     };
     
     try {
-        // Tenta inserir ou atualizar a sessão OTP (upsert)
+        // Tenta inserir ou atualizar a sessão OTP
         const { error: otpError } = await supabase
             .from('otp_sessions')
             .upsert([otpSessionData], { onConflict: 'telefone' }); 
@@ -139,15 +136,16 @@ app.post('/api/send-otp', async (req, res) => {
         return res.status(500).json({ message: 'Erro ao criar sessão de validação.' });
     }
 
-    // 3. ENVIAR CÓDIGO VIA TWILIO MESSAGES PADRÃO
+    // 3. ENVIAR CÓDIGO VIA TWILIO MESSAGES PADRÃO (COM BYPASS DE ERRO)
     try {
+        // Esta chamada falhará com erro 21608 se a conta for Trial
         await twilioClient.messages.create({
             body: `Seu código de verificação DONPEDRO é ${otpCode}. Válido por 5 minutos.`,
             from: process.env.TWILIO_PHONE_NUMBER, 
             to: normalizedNumber, 
         });
 
-        // Sucesso: Retorna a mensagem correta (novo usuário ou reacesso)
+        // SE CHEGAR AQUI, O SMS FOI ENVIADO CORRETAMENTE.
         return res.status(200).json({ 
             message: `Código de verificação enviado para ${normalizedNumber}.`,
             phone: normalizedNumber, 
@@ -155,14 +153,30 @@ app.post('/api/send-otp', async (req, res) => {
         });
 
     } catch (e) {
-        console.error('Erro Twilio Messages (Envio):', e);
-        // Retorna o erro 500 para o frontend
-        return res.status(500).json({ message: 'Erro ao enviar o SMS. Verifique se o número está verificado no Twilio (erro 21608).'});
+        // --- COMPROMISSO DE SEGURANÇA PARA TESTE DE FLUXO ---
+        // Se o erro for o 21608 (Trial), damos o código no JSON para o teste continuar.
+        if (e.code === 21608) {
+            console.warn(`AVISO DE TESTE: Twilio bloqueado (21608). Retornando OTP para o frontend.`);
+             // Retorna 200 OK, mas com o código visível para o usuário testar:
+            return res.status(200).json({ 
+                message: `AVISO DE TESTE (CÓDIGO): ${otpCode}. Insira-o abaixo.`,
+                phone: normalizedNumber, 
+                status: 'pending',
+                // A chave temporária para o frontend exibir:
+                otpCode: otpCode 
+            });
+        }
+        
+        // Se for qualquer outro erro fatal (Credenciais erradas, etc.)
+        console.error('Erro Twilio Messages (Envio) Fatal:', e);
+        return res.status(500).json({ message: 'Erro fatal ao enviar o SMS. Verifique suas credenciais Twilio.'});
     }
 });
 
 
+// ----------------------------------------------------
 // --- ROTAS DO CADASTRO (ETAPA 2: VALIDAR E FINALIZAR) ---
+// ----------------------------------------------------
 
 app.post('/api/check-otp', async (req, res) => {
     const { phone, code, name, address } = req.body; 
@@ -253,6 +267,9 @@ app.post('/api/check-otp', async (req, res) => {
 });
 
 
+// ----------------------------------------------------
+// --- ROTAS DE ACESSO (FUNCIONÁRIO & ADMIN) e LISTEN ---
+// ----------------------------------------------------
 
 /** Rota de Login */
 app.post('/auth/login', async (req, res) => {
