@@ -1,9 +1,9 @@
-// Arquivo: frontend/src/AdminPanel.jsx (CÓDIGO FINAL E COMPLETO)
+// ARQUIVO: frontend/src/AdminPanel.jsx (CÓDIGO FINAL E COMPLETO COM CORREÇÃO DE SEGURANÇA)
 
 import React, { useState, useEffect } from 'react';
 import './Admin.css'; 
 
-// >>> CORREÇÃO CRÍTICA: URL PÚBLICA DA API NO RENDER <<<
+// >>> URL DE PRODUÇÃO CORRETA (RENDER) <<<
 const API_BASE_URL = 'https://coupon-sms-proejct-donpedro.onrender.com';
 // --------------------------------------------------------
 
@@ -66,7 +66,7 @@ const AdminPanel = () => {
                 method: 'GET',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'X-Auth-Token': token // Token de autenticação
+                    'X-Auth-Token': token 
                 },
             });
 
@@ -171,6 +171,7 @@ const AdminPanel = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
+                        autocomplete="off" // <<< CORREÇÃO DE SEGURANÇA
                     />
                     <button type="submit">Acessar Dashboard</button>
                     {loginError && <p className="login-error">{loginError}</p>}
