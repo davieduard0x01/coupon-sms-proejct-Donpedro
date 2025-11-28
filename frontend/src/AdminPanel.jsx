@@ -1,13 +1,17 @@
+// Arquivo: frontend/src/AdminPanel.jsx (CÓDIGO FINAL E COMPLETO)
 
 import React, { useState, useEffect } from 'react';
 import './Admin.css'; 
 
-const API_BASE_URL = 'http://localhost:3001';
+// >>> CORREÇÃO CRÍTICA: URL PÚBLICA DA API NO RENDER <<<
+const API_BASE_URL = 'https://coupon-sms-proejct-donpedro.onrender.com';
+// --------------------------------------------------------
 
 // Função auxiliar para converter a lista de objetos para formato CSV
 const convertToCSV = (data) => {
     if (!data || data.length === 0) return '';
     
+    // Define a ordem e os nomes dos cabeçalhos
     const headers = ["coupon_uuid", "nome", "telefone", "endereco", "status_uso", "data_cadastro", "data_uso"];
     
     const csvContent = [
@@ -15,6 +19,7 @@ const convertToCSV = (data) => {
         ...data.map(row => 
             headers.map(header => {
                 let value = row[header] === null || row[header] === undefined ? '' : row[header];
+                // Formatação da data
                 if (header.startsWith('data_') && value) {
                     value = new Date(value).toLocaleDateString('pt-BR');
                 }
@@ -27,7 +32,7 @@ const convertToCSV = (data) => {
         )
     ].join('\n');
 
-    return "\uFEFF" + csvContent; 
+    return "\uFEFF" + csvContent; // Adiciona BOM para compatibilidade com Excel
 };
 
 const AdminPanel = () => {
@@ -35,7 +40,7 @@ const AdminPanel = () => {
     const [token, setToken] = useState(localStorage.getItem('adminToken') || '');
     const [nivelAcesso, setNivelAcesso] = useState(localStorage.getItem('adminNivel') || '');
     const [usuario, setUsuario] = useState('');
-    const [password, setPassword] = useState(''); 
+    const [password, setPassword] = useState(''); // Estado para a senha
     const [loginError, setLoginError] = useState('');
 
     // --- Estados do Dashboard ---
@@ -61,7 +66,7 @@ const AdminPanel = () => {
                 method: 'GET',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'X-Auth-Token': token 
+                    'X-Auth-Token': token // Token de autenticação
                 },
             });
 
