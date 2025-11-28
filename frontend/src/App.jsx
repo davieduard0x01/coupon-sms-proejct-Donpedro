@@ -8,7 +8,7 @@ const API_SEND_OTP = `${API_BASE_URL}/api/send-otp`;
 const API_CHECK_OTP = `${API_BASE_URL}/api/check-otp`;
 // -----------------------
 
-// Componente para exibir a lista de cupons existentes
+// Componente para exibir a lista de cupons existentes (Tratamento de Duplicidade)
 const UserCuponsList = ({ cupons, onViewQR }) => ( 
     <div className="coupon-list-wrapper">
         <h2>Meus Cupons Cadastrados</h2>
@@ -163,7 +163,8 @@ function App() {
   if (existingUserCupons) {
       return (
         <div className="container duplication-container">
-            <img src="/logo.svg" alt="DONPEDRO Logo" className="brand-logo" />
+            {/* LOGO CORRIGIDO */}
+            <img src="/logo.svg" alt="DONPEDRO" className="brand-logo" /> 
             
             <h1 className="main-title-error">Atenção!</h1>
             <span className="brand-name">{duplicityMessage}</span>
@@ -176,7 +177,6 @@ function App() {
                     setExistingUserCupons(null); 
                     setDuplicityMessage('');
                     setMessage('');
-                    // Mantém os dados para a próxima tentativa
                 }}
                 style={{ marginTop: '20px' }}
             >
@@ -190,7 +190,8 @@ function App() {
   if (currentPhase === 'validacao') {
     return (
         <div className="container validation-container">
-            <img src="/logo.svg" alt="DONPEDRO Logo" className="brand-logo" />
+            {/* LOGO CORRIGIDO */}
+            <img src="/logo.svg" alt="DONPEDRO" className="brand-logo" />
             <h1 className="main-title">Verificação</h1>
             <span className="brand-name">DONPEDRO Segurança</span>
 
@@ -252,7 +253,8 @@ function App() {
   // --- TELA 1: CADASTRO (PADRÃO) ---
   return (
     <div className="container">
-      <img src="/logo.svg" alt="DONPEDRO Logo" className="brand-logo" />
+     
+      <img src="/logo.svg" alt="DONPEDRO" className="brand-logo" />
       
       <h1 className="main-title">Cadastro Exclusivo</h1>
       <span className="brand-name">DONPEDRO</span>
