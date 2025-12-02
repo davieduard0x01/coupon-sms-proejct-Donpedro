@@ -1,3 +1,5 @@
+// ARQUIVO: frontend/src/App.jsx (VERSÃO FINAL COM AVISO DISCRETO)
+
 import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react'; 
 import './App.css'; 
@@ -163,7 +165,6 @@ function App() {
   if (existingUserCupons) {
       return (
         <div className="container duplication-container">
-            {/* LOGO CORRIGIDO */}
             <img src="/logo.svg" alt="DONPEDRO" className="brand-logo" /> 
             
             <h1 className="main-title-error">Atenção!</h1>
@@ -177,6 +178,7 @@ function App() {
                     setExistingUserCupons(null); 
                     setDuplicityMessage('');
                     setMessage('');
+                    // Mantém os dados para a próxima tentativa
                 }}
                 style={{ marginTop: '20px' }}
             >
@@ -190,7 +192,6 @@ function App() {
   if (currentPhase === 'validacao') {
     return (
         <div className="container validation-container">
-            {/* LOGO CORRIGIDO */}
             <img src="/logo.svg" alt="DONPEDRO" className="brand-logo" />
             <h1 className="main-title">Verificação</h1>
             <span className="brand-name">DONPEDRO Segurança</span>
@@ -253,7 +254,6 @@ function App() {
   // --- TELA 1: CADASTRO (PADRÃO) ---
   return (
     <div className="container">
-     
       <img src="/logo.svg" alt="DONPEDRO" className="brand-logo" />
       
       <h1 className="main-title">Cadastro Exclusivo</h1>
@@ -292,6 +292,11 @@ function App() {
       </form>
 
       {message && <p className={`result-message ${couponUUID ? 'success' : 'error'}`}>{message}</p>}
+      
+      {/* AVISO FINAL: Discreto no rodapé */}
+      <p className="note">
+        * Válido apenas para números dos EUA (Código +1).
+      </p>
     </div>
   );
 }
