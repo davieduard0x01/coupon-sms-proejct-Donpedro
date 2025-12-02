@@ -22,11 +22,11 @@ body {
   background-color: white; 
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
-  padding: 30px 20px; 
+  padding: 10px 20px 30px 20px; /* REDUZIDO NO TOPO */
   max-width: 400px; 
   width: 100%;
   text-align: center;
-  margin-top: 20px; 
+  margin-top: 5px; /* REDUZIDO */
   margin-bottom: 20px;
 }
 
@@ -115,16 +115,13 @@ button:disabled {
   cursor: not-allowed;
 }
 
-
 /* --- ESTILOS DA TELA QR CODE (SUCESSO) --- */
-
-/* Novo ícone de sucesso */
 .success-icon-container {
     margin-bottom: 15px;
     width: 60px; 
     height: 60px;
     border-radius: 50%; 
-    background-color: #4CAF50; /* Verde */
+    background-color: #4CAF50;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -148,12 +145,11 @@ button:disabled {
 }
 
 .qrcode-box {
-    /* CORREÇÃO PARA ENCAIXE DO QR CODE */
-    padding: 10px; 
-    border: 2px solid #CC0000; 
+    padding: 10px;
+    border: 2px solid #CC0000;
     border-radius: 8px;
     background-color: white;
-    display: inline-block; 
+    display: inline-block;
     margin: 20px auto;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     line-height: 0; 
@@ -166,7 +162,7 @@ button:disabled {
 }
 
 .reset-button {
-    background-color: #6c757d; /* Cinza para o botão de voltar */
+    background-color: #6c757d;
     color: white;
     padding: 12px 20px;
     border: none;
@@ -178,8 +174,7 @@ button:disabled {
     width: 100%; 
 }
 
-/* --- ESTILOS DA LISTA DE CUPONS (DESTAQUE NA DUPLICIDADE) --- */
-
+/* --- ESTILOS DA LISTA DE CUPONS --- */
 .duplication-container {
     padding: 30px 25px; 
 }
@@ -193,10 +188,10 @@ button:disabled {
 .coupon-list-wrapper {
     margin: 25px 0; 
     padding: 20px; 
-    border: 2px solid #CC0000; /* Borda Vermelha para destaque */
+    border: 2px solid #CC0000;
     border-radius: 8px;
     text-align: left;
-    background-color: #ffeaea; /* Fundo levemente rosado para indicar alerta */
+    background-color: #ffeaea;
     box-shadow: 0 0 10px rgba(204, 0, 0, 0.2);
 }
 
@@ -240,6 +235,7 @@ button:disabled {
     margin-bottom: 5px;
     text-transform: uppercase;
 }
+
 .status-nao-utilizado {
     border-color: #007bff;
     background-color: #e6f7ff;
@@ -281,6 +277,7 @@ button:disabled {
   color: #CC0000;
   border: 1px solid #ffc2c2;
 }
+
 .note {
   margin-top: 20px;
   font-size: 0.85em;
