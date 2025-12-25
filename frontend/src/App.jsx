@@ -1,20 +1,20 @@
-// ARQUIVO: frontend/src/App.jsx (VERSÃO FINAL COM AVISO DISCRETO)
+// ARQUIVO: frontend/src/App.jsx (ENGLISH VERSION + GREEN BUTTON)
 
 import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react'; 
 import './App.css'; 
 
-// --- URL DE PRODUÇÃO ---
+// --- PRODUCTION URL ---
 const API_BASE_URL = 'https://coupon-sms-proejct-donpedro.onrender.com';
 const API_SEND_OTP = `${API_BASE_URL}/api/send-otp`;
 const API_CHECK_OTP = `${API_BASE_URL}/api/check-otp`;
 // -----------------------
 
-// Componente para exibir a lista de cupons existentes (Tratamento de Duplicidade)
+// Component to display existing coupons (Duplicate Handling)
 const UserCuponsList = ({ cupons, onViewQR }) => ( 
     <div className="coupon-list-wrapper">
-        <h2>Meus Cupons Cadastrados</h2>
-        <p className="list-intro">Você já possui cadastro. Abaixo estão seus cupons:</p>
+        <h2>My Coupons</h2>
+        <p className="list-intro">You are already registered. Here are your coupons:</p>
         <div className="coupon-grid">
             {cupons.map((coupon) => (
                 <div 
@@ -23,54 +23,56 @@ const UserCuponsList = ({ cupons, onViewQR }) => (
                     onClick={() => coupon.status_uso === 'NAO_UTILIZADO' && onViewQR(coupon.coupon_uuid)} 
                     style={{ cursor: coupon.status_uso === 'NAO_UTILIZADO' ? 'pointer' : 'default' }}
                 >
-                    <p className="status-label">{coupon.status_uso.replace('_', ' ')}</p>
+                    <p className="status-label">
+                        {coupon.status_uso === 'NAO_UTILIZADO' ? 'ACTIVE' : coupon.status_uso.replace('_', ' ')}
+                    </p>
                     <p className="coupon-code-display">{coupon.coupon_code} ({coupon.coupon_uuid.substring(0, 8)}...)</p>
                     {coupon.status_uso === 'NAO_UTILIZADO' ? (
-                        <p className="print-info">Clique para ver o QR Code válido novamente.</p>
+                        <p className="print-info">Click to view valid QR Code again.</p>
                     ) : (
-                        <p className="print-info">Este cupom foi {coupon.status_uso.toLowerCase()}.</p>
+                        <p className="print-info">This coupon has been {coupon.status_uso.toLowerCase()}.</p>
                     )}
                 </div>
             ))}
         </div>
-        <p className="note">Se você perdeu seu QR Code válido, contate o suporte.</p>
+        <p className="note">If you lost your valid QR Code, please contact support.</p>
     </div>
 );
 
 
 function App() {
-  // --- DADOS DE CADASTRO (PERSISTEM ENTRE TELAS) ---
+  // --- FORM DATA (Persists between screens) ---
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
 
-  // --- ESTADOS DE CONTROLE ---
+  // --- CONTROL STATES ---
   const [currentPhase, setCurrentPhase] = useState('cadastro'); // 'cadastro', 'validacao', 'qrcode'
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [otpCode, setOtpCode] = useState(''); // Código que o usuário digita
+  const [otpCode, setOtpCode] = useState(''); // Code user types
   
-  // --- ESTADOS DE RESULTADO ---
+  // --- RESULT STATES ---
   const [couponUUID, setCouponUUID] = useState(null);
   const [couponCode, setCouponCode] = useState(null); 
   const [existingUserCupons, setExistingUserCupons] = useState(null);
   const [duplicityMessage, setDuplicityMessage] = useState('');
 
 
-  // Função para acionar a visualização do QR Code de um cupom já existente
+  // Function to view QR Code of an existing coupon
   const handleViewQR = (uuid) => {
     const validCoupon = existingUserCupons.find(c => c.coupon_uuid === uuid);
 
     setCouponUUID(uuid);
     setCouponCode(validCoupon ? validCoupon.coupon_code : 'D0nP3dro20');
-    setMessage("Seu cupom válido foi recuperado.");
+    setMessage("Your valid coupon has been retrieved.");
     setCurrentPhase('qrcode');
     setExistingUserCupons(null); 
   };
 
 
   // ----------------------------------------------------------------------
-  // --- FASE 1: ENVIAR DADOS E SOLICITAR OTP ---
+  // --- PHASE 1: SEND DATA AND REQUEST OTP ---
   // ----------------------------------------------------------------------
   const handleSendOtp = async (e) => {
     e.preventDefault();
@@ -89,22 +91,22 @@ function App() {
       const data = await response.json();
       
       if (response.ok) {
-        // SUCESSO: O código foi enviado. Mude para a tela de validação.
-        setMessage(data.message);
+        // SUCCESS: Code sent. Move to validation screen.
+        setMessage(data.message || 'Verification code sent!');
         setCurrentPhase('validacao');
         
       } else if (response.status === 409) {
-        // DUPLICIDADE: O usuário já está no DB
-        setDuplicityMessage(data.message); 
+        // DUPLICATE: User already in DB
+        setDuplicityMessage(data.message || 'User already registered.'); 
         setExistingUserCupons(data.cupons); 
         
       } else {
-        // Erro Twilio/Validação de campo
-        setMessage(`Falha no envio do código: ${data.message}.`);
+        // Twilio Error / Field Validation
+        setMessage(`Failed to send code: ${data.message}.`);
       }
     } catch (error) {
-      console.error('Erro na requisição de envio OTP:', error);
-      setMessage('Erro de conexão com o servidor.');
+      console.error('Request Error (Send OTP):', error);
+      setMessage('Connection error with the server.');
     } finally {
       setLoading(false);
     }
@@ -112,7 +114,7 @@ function App() {
 
 
   // ----------------------------------------------------------------------
-  // --- FASE 2: VALIDAR OTP E FINALIZAR CADASTRO ---
+  // --- PHASE 2: VALIDATE OTP AND FINISH REGISTRATION ---
   // ----------------------------------------------------------------------
   const handleCheckOtp = async (e) => {
     e.preventDefault();
@@ -120,12 +122,12 @@ function App() {
     setMessage('');
 
     if (otpCode.length !== 6) {
-        setMessage('O código deve ter 6 dígitos.');
+        setMessage('Code must be 6 digits.');
         setLoading(false);
         return;
     }
     
-    // Dados de cadastro são enviados novamente para que o backend salve/verifique
+    // Registration data sent again for backend validation/saving
     const finalData = { name, phone, address, code: otpCode };
 
     try {
@@ -138,19 +140,19 @@ function App() {
       const data = await response.json();
       
       if (response.ok) {
-        // SUCESSO: Código aprovado e lead salvo ou recuperado.
-        setMessage(data.message); 
+        // SUCCESS: Code approved.
+        setMessage(data.message || 'Success!'); 
         setCouponUUID(data.couponUUID); 
         setCouponCode(data.couponCode); 
         setCurrentPhase('qrcode'); 
         
       } else {
-        // CÓDIGO INVÁLIDO ou EXPIRADO
-        setMessage(data.message || 'Código inválido. Tente novamente.');
+        // INVALID or EXPIRED CODE
+        setMessage(data.message || 'Invalid code. Please try again.');
       }
     } catch (error) {
-      console.error('Erro na requisição de checagem OTP:', error);
-      setMessage('Erro de conexão durante a validação.');
+      console.error('Request Error (Check OTP):', error);
+      setMessage('Connection error during validation.');
     } finally {
       setLoading(false);
     }
@@ -158,16 +160,16 @@ function App() {
 
 
   // ----------------------------------------------------------------------
-  // --- LÓGICA DE RENDERIZAÇÃO DE TELAS ---
+  // --- SCREEN RENDERING LOGIC ---
   // ----------------------------------------------------------------------
 
-  // --- TELA 1.1: DUPLICIDADE DETECTADA ---
+  // --- SCREEN 1.1: DUPLICATE DETECTED ---
   if (existingUserCupons) {
       return (
         <div className="container duplication-container">
             <img src="/logo.svg" alt="DONPEDRO" className="brand-logo" /> 
             
-            <h1 className="main-title-error">Atenção!</h1>
+            <h1 className="main-title-error">Attention!</h1>
             <span className="brand-name">{duplicityMessage}</span>
             
             <UserCuponsList cupons={existingUserCupons} onViewQR={handleViewQR} />
@@ -178,23 +180,23 @@ function App() {
                     setExistingUserCupons(null); 
                     setDuplicityMessage('');
                     setMessage('');
-                    // Mantém os dados para a próxima tentativa
+                    // Keep data for next attempt
                 }}
                 style={{ marginTop: '20px' }}
             >
-                TENTAR NOVO CADASTRO
+                TRY NEW REGISTRATION
             </button>
         </div>
       );
   }
 
-  // --- TELA 2: VALIDAÇÃO OTP ---
+  // --- SCREEN 2: OTP VALIDATION ---
   if (currentPhase === 'validacao') {
     return (
         <div className="container validation-container">
             <img src="/logo.svg" alt="DONPEDRO" className="brand-logo" />
-            <h1 className="main-title">Verificação</h1>
-            <span className="brand-name">DONPEDRO Segurança</span>
+            <h1 className="main-title">Verification</h1>
+            <span className="brand-name">DONPEDRO Security</span>
 
             <p className="instruction-text">{message}</p>
             
@@ -203,32 +205,33 @@ function App() {
                     type="number" 
                     value={otpCode}
                     onChange={(e) => setOtpCode(e.target.value)}
-                    placeholder="Insira o Código de 6 dígitos"
+                    placeholder="Enter 6-digit Code"
                     required
                     disabled={loading}
                     maxLength={6}
                     style={{ textAlign: 'center', fontSize: '1.2em' }}
                 />
-                <button type="submit" disabled={loading}>
-                    {loading ? 'Verificando...' : 'VALIDAR E FINALIZAR'}
+                {/* BOTÃO VERDE */}
+                <button type="submit" disabled={loading} style={{ backgroundColor: '#28a745', borderColor: '#28a745' }}>
+                    {loading ? 'Verifying...' : 'VALIDATE & FINISH'}
                 </button>
             </form>
             
             <button className="reset-button" onClick={() => setCurrentPhase('cadastro')} style={{ marginTop: '15px' }}>
-                Voltar
+                Go Back
             </button>
         </div>
     );
   }
 
-  // --- TELA 3: QR CODE (SUCESSO) ---
+  // --- SCREEN 3: QR CODE (SUCCESS) ---
   if (currentPhase === 'qrcode') {
       return (
         <div className="container qr-display-container">
             <div className="success-icon-container">
                 <span className="success-check-mark">✔</span>
             </div>
-            <h1 className="main-title-qr">Cupom Gerado!</h1>
+            <h1 className="main-title-qr">Coupon Generated!</h1>
             <span className="brand-name">DONPEDRO</span>
             <p className="success-message">{message}</p>
 
@@ -241,32 +244,32 @@ function App() {
                 />
             </div>
             
-            <p className="instruction-small">Apresente este QR Code para validar seu cupom. Válido para 1 uso.</p>
+            <p className="instruction-small">Show this QR Code to the cashier. Valid for 1 use.</p>
             
             <button className="reset-button" onClick={() => setCurrentPhase('cadastro')}>
-                VOLTAR
+                BACK TO START
             </button>
         </div>
       );
   }
 
 
-  // --- TELA 1: CADASTRO (PADRÃO) ---
+  // --- SCREEN 1: REGISTRATION (DEFAULT) ---
   return (
     <div className="container">
       <img src="/logo.svg" alt="DONPEDRO" className="brand-logo" />
       
-      <h1 className="main-title">Cadastro Exclusivo</h1>
+      <h1 className="main-title">Exclusive Registration</h1>
       <span className="brand-name">DONPEDRO</span>
 
-      <p>Preencha os dados para receber o código de segurança via SMS.</p>
+      <p>Fill in your details to receive the security code via SMS.</p>
       
       <form onSubmit={handleSendOtp}> 
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Seu Nome Completo"
+          placeholder="Full Name"
           required
           disabled={loading}
         />
@@ -274,7 +277,7 @@ function App() {
           type="tel"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          placeholder="Telefone (Ex: 555-555-5555)"
+          placeholder="Phone Number (e.g. 215-555-0123)"
           required
           disabled={loading}
         />
@@ -282,20 +285,21 @@ function App() {
           type="text"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
-          placeholder="Seu Endereço (Obrigatório)"
+          placeholder="Your Address (Required)"
           required
           disabled={loading}
         />
-        <button type="submit" disabled={loading}>
-          {loading ? 'Enviando Código...' : 'Enviar Código de Verificação'}
+        {/* BOTÃO VERDE */}
+        <button type="submit" disabled={loading} style={{ backgroundColor: '#28a745', borderColor: '#28a745' }}>
+          {loading ? 'Sending Code...' : 'SEND VERIFICATION CODE'}
         </button>
       </form>
 
       {message && <p className={`result-message ${couponUUID ? 'success' : 'error'}`}>{message}</p>}
       
-      {/* AVISO FINAL: Discreto no rodapé */}
+      {/* FINAL NOTICE: Discreet footer */}
       <p className="note">
-        * Válido apenas para números dos EUA (Código +1).
+        * Valid for US numbers only (+1 code).
       </p>
     </div>
   );
