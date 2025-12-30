@@ -1,4 +1,3 @@
-// ARQUIVO: backend/index.js (VERSÃO FINAL: TIMEZONE UTC + FORMATAÇÃO TELEFONE CORRIGIDA)
 
 require('dotenv').config();
 const express = require('express');
@@ -14,15 +13,24 @@ const PORT = process.env.PORT || 3001;
 // --- Configurações Fixas ---
 const FIXED_COUPON_CODE = "D0nP3dro20"; 
 
-const VERCEL_FRONTEND_URL = 'https://coupon-sms-proejct-donpedro.vercel.app';
+// URLs Permitidas (CORS)
+const VERCEL_FRONTEND_URL = 'https://coupon-sms-proejct-donpedro.vercel.app'; // URL Antiga (Backup)
+const CUSTOM_DOMAIN_URL = 'https://sms.donpedrousa.com'; // <--- SEU NOVO SUBDOMÍNIO
 
 const corsOptions = {
-    origin: [VERCEL_FRONTEND_URL, 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'], 
+    origin: [
+        VERCEL_FRONTEND_URL, 
+        CUSTOM_DOMAIN_URL,       // Adicionado para permitir o acesso do novo domínio
+        'http://localhost:5173', 
+        'http://localhost:5174', 
+        'http://localhost:5175'
+    ], 
     optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
 app.use(express.json());
 
+// Inicialização dos serviços
 const supabase = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY
