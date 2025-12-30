@@ -15,7 +15,7 @@ const FIXED_COUPON_CODE = "D0nP3dro20";
 
 // URLs Permitidas (CORS)
 const VERCEL_FRONTEND_URL = 'https://coupon-sms-proejct-donpedro.vercel.app'; // URL Antiga (Backup)
-const CUSTOM_DOMAIN_URL = 'https://sms.donpedrousa.com'; // <--- SEU NOVO SUBDOMÍNIO
+const CUSTOM_DOMAIN_URL = 'https://cupom.donpedrousa.com'; // <--- SEU NOVO SUBDOMÍNIO
 
 const corsOptions = {
     origin: [
