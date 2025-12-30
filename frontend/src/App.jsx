@@ -1,4 +1,4 @@
-// ARQUIVO: frontend/src/App.jsx (ENGLISH VERSION + GREEN BUTTON)
+// ARQUIVO: frontend/src/App.jsx (ENGLISH + GREEN BUTTON + SMALL LOGO)
 
 import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react'; 
@@ -167,7 +167,13 @@ function App() {
   if (existingUserCupons) {
       return (
         <div className="container duplication-container">
-            <img src="/logo.svg" alt="DONPEDRO" className="brand-logo" /> 
+            {/* LOGO REDUZIDA AQUI */}
+            <img 
+                src="/logo.svg" 
+                alt="DONPEDRO" 
+                className="brand-logo" 
+                style={{ maxWidth: '130px', margin: '0 auto 15px', display: 'block' }} 
+            /> 
             
             <h1 className="main-title-error">Attention!</h1>
             <span className="brand-name">{duplicityMessage}</span>
@@ -194,7 +200,13 @@ function App() {
   if (currentPhase === 'validacao') {
     return (
         <div className="container validation-container">
-            <img src="/logo.svg" alt="DONPEDRO" className="brand-logo" />
+            {/* LOGO REDUZIDA AQUI */}
+            <img 
+                src="/logo.svg" 
+                alt="DONPEDRO" 
+                className="brand-logo" 
+                style={{ maxWidth: '130px', margin: '0 auto 15px', display: 'block' }} 
+            />
             <h1 className="main-title">Verification</h1>
             <span className="brand-name">DONPEDRO Security</span>
 
@@ -257,7 +269,13 @@ function App() {
   // --- SCREEN 1: REGISTRATION (DEFAULT) ---
   return (
     <div className="container">
-      <img src="/logo.svg" alt="DONPEDRO" className="brand-logo" />
+      {/* LOGO REDUZIDA AQUI */}
+      <img 
+        src="/logo.svg" 
+        alt="DONPEDRO" 
+        className="brand-logo" 
+        style={{ maxWidth: '130px', margin: '0 auto 15px', display: 'block' }} 
+      />
       
       <h1 className="main-title">Exclusive Registration</h1>
       <span className="brand-name">DONPEDRO</span>
