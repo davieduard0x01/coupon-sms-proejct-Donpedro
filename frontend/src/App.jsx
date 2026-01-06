@@ -1,4 +1,4 @@
-// ARQUIVO: frontend/src/App.jsx (ENGLISH + GREEN BUTTON + SMALL LOGO)
+// ARQUIVO: frontend/src/App.jsx (COPY FINAL: GET EXCLUSIVE ACCESS)
 
 import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react'; 
@@ -41,7 +41,7 @@ const UserCuponsList = ({ cupons, onViewQR }) => (
 
 
 function App() {
-  // --- FORM DATA (Persists between screens) ---
+  // --- FORM DATA ---
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
@@ -50,7 +50,7 @@ function App() {
   const [currentPhase, setCurrentPhase] = useState('cadastro'); // 'cadastro', 'validacao', 'qrcode'
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [otpCode, setOtpCode] = useState(''); // Code user types
+  const [otpCode, setOtpCode] = useState(''); 
   
   // --- RESULT STATES ---
   const [couponUUID, setCouponUUID] = useState(null);
@@ -91,17 +91,14 @@ function App() {
       const data = await response.json();
       
       if (response.ok) {
-        // SUCCESS: Code sent. Move to validation screen.
         setMessage(data.message || 'Verification code sent!');
         setCurrentPhase('validacao');
         
       } else if (response.status === 409) {
-        // DUPLICATE: User already in DB
         setDuplicityMessage(data.message || 'User already registered.'); 
         setExistingUserCupons(data.cupons); 
         
       } else {
-        // Twilio Error / Field Validation
         setMessage(`Failed to send code: ${data.message}.`);
       }
     } catch (error) {
@@ -127,7 +124,6 @@ function App() {
         return;
     }
     
-    // Registration data sent again for backend validation/saving
     const finalData = { name, phone, address, code: otpCode };
 
     try {
@@ -140,14 +136,12 @@ function App() {
       const data = await response.json();
       
       if (response.ok) {
-        // SUCCESS: Code approved.
         setMessage(data.message || 'Success!'); 
         setCouponUUID(data.couponUUID); 
         setCouponCode(data.couponCode); 
         setCurrentPhase('qrcode'); 
         
       } else {
-        // INVALID or EXPIRED CODE
         setMessage(data.message || 'Invalid code. Please try again.');
       }
     } catch (error) {
@@ -167,7 +161,6 @@ function App() {
   if (existingUserCupons) {
       return (
         <div className="container duplication-container">
-            {/* LOGO REDUZIDA AQUI */}
             <img 
                 src="/logo.svg" 
                 alt="DONPEDRO" 
@@ -186,7 +179,6 @@ function App() {
                     setExistingUserCupons(null); 
                     setDuplicityMessage('');
                     setMessage('');
-                    // Keep data for next attempt
                 }}
                 style={{ marginTop: '20px' }}
             >
@@ -200,7 +192,6 @@ function App() {
   if (currentPhase === 'validacao') {
     return (
         <div className="container validation-container">
-            {/* LOGO REDUZIDA AQUI */}
             <img 
                 src="/logo.svg" 
                 alt="DONPEDRO" 
@@ -223,7 +214,6 @@ function App() {
                     maxLength={6}
                     style={{ textAlign: 'center', fontSize: '1.2em' }}
                 />
-                {/* BOTÃO VERDE */}
                 <button type="submit" disabled={loading} style={{ backgroundColor: '#28a745', borderColor: '#28a745' }}>
                     {loading ? 'Verifying...' : 'VALIDATE & FINISH'}
                 </button>
@@ -266,10 +256,9 @@ function App() {
   }
 
 
-  // --- SCREEN 1: REGISTRATION (DEFAULT) ---
+  // --- SCREEN 1: REGISTRATION (UPDATED COPY) ---
   return (
     <div className="container">
-      {/* LOGO REDUZIDA AQUI */}
       <img 
         src="/logo.svg" 
         alt="DONPEDRO" 
@@ -277,10 +266,13 @@ function App() {
         style={{ maxWidth: '130px', margin: '0 auto 15px', display: 'block' }} 
       />
       
-      <h1 className="main-title">Exclusive Registration</h1>
-      <span className="brand-name">DONPEDRO</span>
-
-      <p>Fill in your details to receive the security code via SMS.</p>
+      {/* TÍTULO ATUALIZADO */}
+      <h1 className="main-title">GET EXCLUSIVE ACCESS</h1>
+      
+      {/* SUBTÍTULO ATUALIZADO */}
+      <p style={{ marginTop: '10px', marginBottom: '20px' }}>
+        Enter your information below to receive a security code via SMS.
+      </p>
       
       <form onSubmit={handleSendOtp}> 
         <input
@@ -295,7 +287,7 @@ function App() {
           type="tel"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          placeholder="Phone Number (e.g. 215-555-0123)"
+          placeholder="Phone Number" 
           required
           disabled={loading}
         />
@@ -303,21 +295,21 @@ function App() {
           type="text"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
-          placeholder="Your Address (Required)"
+          placeholder="Your Address [Required]" 
           required
           disabled={loading}
         />
-        {/* BOTÃO VERDE */}
+        {/* BOTÃO ATUALIZADO */}
         <button type="submit" disabled={loading} style={{ backgroundColor: '#28a745', borderColor: '#28a745' }}>
-          {loading ? 'Sending Code...' : 'SEND VERIFICATION CODE'}
+          {loading ? 'Processing...' : 'GET MY CODE'}
         </button>
       </form>
 
       {message && <p className={`result-message ${couponUUID ? 'success' : 'error'}`}>{message}</p>}
       
-      {/* FINAL NOTICE: Discreet footer */}
+      {/* RODAPÉ ATUALIZADO */}
       <p className="note">
-        * Valid for US numbers only (+1 code).
+        *Valid for U.S. phone numbers only (+1 country code).
       </p>
     </div>
   );
