@@ -1,4 +1,4 @@
-// ARQUIVO: frontend/src/App.jsx (COPY FINAL: GET EXCLUSIVE ACCESS)
+// ARQUIVO: frontend/src/App.jsx (VERSÃO FINAL)
 
 import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react'; 
@@ -161,6 +161,7 @@ function App() {
   if (existingUserCupons) {
       return (
         <div className="container duplication-container">
+            {/* LOGO PEQUENA (130px) */}
             <img 
                 src="/logo.svg" 
                 alt="DONPEDRO" 
@@ -192,6 +193,7 @@ function App() {
   if (currentPhase === 'validacao') {
     return (
         <div className="container validation-container">
+            {/* LOGO PEQUENA (130px) */}
             <img 
                 src="/logo.svg" 
                 alt="DONPEDRO" 
@@ -256,9 +258,10 @@ function App() {
   }
 
 
-  // --- SCREEN 1: REGISTRATION (UPDATED COPY) ---
+  // --- SCREEN 1: REGISTRATION (COPY NOVA) ---
   return (
     <div className="container">
+      {/* LOGO PEQUENA (130px) */}
       <img 
         src="/logo.svg" 
         alt="DONPEDRO" 
@@ -266,10 +269,9 @@ function App() {
         style={{ maxWidth: '130px', margin: '0 auto 15px', display: 'block' }} 
       />
       
-      {/* TÍTULO ATUALIZADO */}
+      {/* COPY ATUALIZADA */}
       <h1 className="main-title">GET EXCLUSIVE ACCESS</h1>
       
-      {/* SUBTÍTULO ATUALIZADO */}
       <p style={{ marginTop: '10px', marginBottom: '20px' }}>
         Enter your information below to receive a security code via SMS.
       </p>
@@ -299,7 +301,7 @@ function App() {
           required
           disabled={loading}
         />
-        {/* BOTÃO ATUALIZADO */}
+        {/* BOTÃO VERDE */}
         <button type="submit" disabled={loading} style={{ backgroundColor: '#28a745', borderColor: '#28a745' }}>
           {loading ? 'Processing...' : 'GET MY CODE'}
         </button>
