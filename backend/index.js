@@ -1,3 +1,4 @@
+// ARQUIVO: backend/index.js (ATUALIZADO COM DOMÍNIO CUPOM.DONPEDROUSA.COM)
 
 require('dotenv').config();
 const express = require('express');
@@ -13,14 +14,12 @@ const PORT = process.env.PORT || 3001;
 // --- Configurações Fixas ---
 const FIXED_COUPON_CODE = "D0nP3dro20"; 
 
-// URLs Permitidas (CORS)
-const VERCEL_FRONTEND_URL = 'https://coupon-sms-proejct-donpedro.vercel.app'; // URL Antiga (Backup)
-const CUSTOM_DOMAIN_URL = 'https://cupom.donpedrousa.com'; // <--- SEU NOVO SUBDOMÍNIO
-
+// --- LISTA DE DOMÍNIOS PERMITIDOS (CORS) ---
 const corsOptions = {
     origin: [
-        VERCEL_FRONTEND_URL, 
-        CUSTOM_DOMAIN_URL,       // Adicionado para permitir o acesso do novo domínio
+        'https://coupon-sms-proejct-donpedro.vercel.app', // Vercel Original
+        'https://sms.donpedrousa.com',                     // Subdomínio SMS
+        'https://cupom.donpedrousa.com',                   // <--- NOVO: O QUE ESTAVA DANDO ERRO
         'http://localhost:5173', 
         'http://localhost:5174', 
         'http://localhost:5175'
@@ -42,14 +41,10 @@ const twilioClient = twilio(
 
 // --- Funções de Ajuda ---
 
-// Função CRÍTICA para garantir que o número seja sempre igual (+1 para EUA)
 const normalizePhoneNumber = (number) => {
     const digits = number.replace(/\D/g, '');
-    // Se já tem 11 digitos e começa com 1 (ex: 1267...), é EUA com código de país
     if (digits.length === 11 && digits.startsWith('1')) { return `+${digits}`; }
-    // Se tem 10 digitos (ex: 267...), é EUA sem código, adiciona +1
     if (digits.length === 10) { return `+1${digits}`; }
-    // Outros casos (Brasil, etc), apenas adiciona +
     return `+${digits}`; 
 };
 
@@ -88,7 +83,6 @@ app.post('/api/send-otp', async (req, res) => {
     
     const normalizedNumber = normalizePhoneNumber(phone);
     
-    // Validação básica de tamanho (EUA = 12 caracteres com o +1)
     if (!normalizedNumber.startsWith('+') || normalizedNumber.length < 12) {
         return res.status(400).json({ message: 'Número inválido. Use formato com DDD.' });
     }
@@ -130,7 +124,6 @@ app.post('/api/send-otp', async (req, res) => {
         });
 
     } catch (e) {
-        // Fallback para teste se A2P bloquear (retorna código no JSON)
         if (e.code === 21608 || e.code === 30034) {
             return res.status(200).json({ 
                 message: `AVISO (BLOQUEIO TWILIO): Use o código ${otpCode}.`,
@@ -150,18 +143,16 @@ app.post('/api/check-otp', async (req, res) => {
     
     if (!phone || !code || !name || !address) { return res.status(400).json({ message: 'Dados incompletos.' }); }
     
-    // >>> CORREÇÃO: USA A MESMA NORMALIZAÇÃO DO SEND-OTP <<<
     const normalizedNumber = normalizePhoneNumber(phone);
 
     try {
         const { data: session, error: sessionError } = await supabase
             .from('otp_sessions')
             .select('codigo_otp, expira_em')
-            .eq('telefone', normalizedNumber) // Busca pelo número formatado corretamente (+1...)
+            .eq('telefone', normalizedNumber)
             .limit(1);
 
         if (sessionError || !session || session.length === 0) {
-            // Log para você ver no Render o que está chegando vs o que deveria
             console.log(`Falha Check: Buscado ${normalizedNumber} - Não encontrado.`);
             return res.status(401).json({ message: 'Sessão não encontrada.' });
         }
@@ -180,7 +171,6 @@ app.post('/api/check-otp', async (req, res) => {
             return res.status(401).json({ message: 'Código incorreto.' });
         }
 
-        // --- SUCESSO ---
         await supabase.from('otp_sessions').delete().eq('telefone', normalizedNumber);
         
         const { data: existingCupons } = await supabase.from('leads_cupons').select('*').eq('telefone', normalizedNumber);
