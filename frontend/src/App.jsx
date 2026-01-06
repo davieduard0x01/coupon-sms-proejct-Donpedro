@@ -1,4 +1,4 @@
-// ARQUIVO: frontend/src/App.jsx (VERSÃO FINAL)
+// ARQUIVO: frontend/src/App.jsx (VERSÃO FINAL: LOGO PADRÃO)
 
 import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react'; 
@@ -161,12 +161,11 @@ function App() {
   if (existingUserCupons) {
       return (
         <div className="container duplication-container">
-            {/* LOGO PEQUENA (130px) */}
+            {/* LOGO VOLTOU AO NORMAL (SEM STYLE FIXO) */}
             <img 
                 src="/logo.svg" 
                 alt="DONPEDRO" 
                 className="brand-logo" 
-                style={{ maxWidth: '130px', margin: '0 auto 15px', display: 'block' }} 
             /> 
             
             <h1 className="main-title-error">Attention!</h1>
@@ -193,12 +192,11 @@ function App() {
   if (currentPhase === 'validacao') {
     return (
         <div className="container validation-container">
-            {/* LOGO PEQUENA (130px) */}
+            {/* LOGO VOLTOU AO NORMAL (SEM STYLE FIXO) */}
             <img 
                 src="/logo.svg" 
                 alt="DONPEDRO" 
                 className="brand-logo" 
-                style={{ maxWidth: '130px', margin: '0 auto 15px', display: 'block' }} 
             />
             <h1 className="main-title">Verification</h1>
             <span className="brand-name">DONPEDRO Security</span>
@@ -258,18 +256,16 @@ function App() {
   }
 
 
-  // --- SCREEN 1: REGISTRATION (COPY NOVA) ---
+  // --- SCREEN 1: REGISTRATION (DEFAULT) ---
   return (
     <div className="container">
-      {/* LOGO PEQUENA (130px) */}
+      {/* LOGO VOLTOU AO NORMAL (SEM STYLE FIXO) */}
       <img 
         src="/logo.svg" 
         alt="DONPEDRO" 
         className="brand-logo" 
-        style={{ maxWidth: '130px', margin: '0 auto 15px', display: 'block' }} 
       />
       
-      {/* COPY ATUALIZADA */}
       <h1 className="main-title">GET EXCLUSIVE ACCESS</h1>
       
       <p style={{ marginTop: '10px', marginBottom: '20px' }}>
@@ -309,7 +305,6 @@ function App() {
 
       {message && <p className={`result-message ${couponUUID ? 'success' : 'error'}`}>{message}</p>}
       
-      {/* RODAPÉ ATUALIZADO */}
       <p className="note">
         *Valid for U.S. phone numbers only (+1 country code).
       </p>
